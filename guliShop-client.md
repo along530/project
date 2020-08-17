@@ -1492,7 +1492,7 @@ export default {
 
 **ListerContainer/index.vue**
 
-	
+
 	通过选择器可以指定哪个地方需要，但是不好
 	通过ref最好
 	//ref获取dom元素
@@ -1814,17 +1814,228 @@ import "swiper/css/swiper.css";
 46、实现search与searchSelector静态组件
 	searchSelector是search组件的一个子组件
 
+pages/Search
+
+```js
+  components: {
+    SearchSelector,
+  },
+  // 引入
+   import SearchSelector from "./SearchSelector/SearchSelector";
+  //使用
+   <!--selector-->
+    <SearchSelector />
+      
+```
+
+
+
 47、search接口测试和编写请求函数 （参数按照文档的给定）
 	参考接口文档去做
 
+**src/api/index.js**
+
+```js
+//searchParams,这个参数必须要有,至少得是一个没有属性的对象
+//参数如果是一个空的对象,代表搜索请求获取的是全部的数据
+//参数如果有搜索条件,代表获取的就是搜索条件匹配的数据
+export const reqGoodsListInfo =(searchParams)=>{
+	return ajax({
+        url:'/list',
+        method:'post',
+        data:searchParams
+    })
+}
+reqGoodsListInfo({})//空对象给了searchParams
+params参数是和路径一体的 , 它也是一个对象,里面配置的是query参数
+searchParams是vue组件传过来的
+```
+
+F12打开,去首页,main里面已经引入了api/index.js , 查看是否发送请求 , 如果报201 , 就是请求的参数问题 , 这里最少要传一个空对象`reqGoodsListInfo({})`
+
+**store里面建search.js** 
+
+```js
+import {reqGoodsListInfo} from '@/api'
+
+const state = {
+  goodsListInfo:{}
+}
+const mutations = {
+  RECEIVEGOODSLISTINFO(state,goodsListInfo){
+    state.goodsListInfo = goodsListInfo
+  }
+}
+const actions = {
+  //如果通过dispatch去调用的函数，接收的第一个参数是context上下文，我们传递的参数是第二个，如果我们传递的是
+  //多个参数，需要使用对象传递给第二个
+  // dispatch('getGoodsListInfo','aaa','bbb')
+  async getGoodsListInfo({commit},searchParams){
+    const result = await reqGoodsListInfo(searchParams)
+    if(result.code === 200){
+      commit('RECEIVEGOODSLISTINFO',result.data)
+    }
+  }
+}
+const getters = {
+  attrsList(state){
+    return state.goodsListInfo.attrsList || []
+  },
+  goodsList(state){
+    return state.goodsListInfo.goodsList || []
+  },
+  trademarkList(state){
+    return state.goodsListInfo.trademarkList || []
+  }
+}
+export default {
+  state,
+  mutations,
+  actions,
+  getters
+}
+
+dispatch想要传递多个必须放在对象里面
+//现在还没有发请求,在vue组件里面发
+```
+
+​                 
+
 48、search模块vuex编码
 	编码和前面的类似  每写一步就测试一步
-
 
 49、搜索条件参数的理解和初始data收集参数准备
 	传递参数对象，至少得传递一个没有属性的对象
 	搜索参数是怎么组成的，参考文档
 	在Search组件当中data设置初始参数的对象（因为不管怎么样搜索必须要一个初始的参数，没有就没办法）
+
+**Search/index.vue**
+
+```js
+export defalut{
+    
+    data(){
+        return{
+            searchParams:{
+                //用户的初始化参数,里面放的是用户可能搜索的所有条件,只不过初始为空的
+        category1Id: "",
+        category2Id: "",
+        category3Id: "",
+        categoryName: "",
+        keyword: "",
+        order: "1:desc",
+        pageNo: 1,
+        pageSize: 5,
+        props: [],
+        trademark: "",
+            },
+        };
+    },
+    mounted(){
+    //发请求
+    this.getGoodsListInfo()
+},
+    beforeMouted(){
+      this.handlerSearchParams()
+  },
+methods:{
+	getGoodsListInfo(){
+        this.$store.dispatch('getGoodsListInfo',this.searchParams)
+    }
+}
+computed:{
+    ...mapGetters(['goodsList'])
+}
+   
+//vue调试查看vuex,点击搜索到search页,看getGoodsListInfo有没有数据
+    //html部分
+    干掉多余的li,只留一个 , 
+     class='yui3-u-1-5'遍历,goodsList是个数据
+    img:src
+    class='price'
+    class='attr'
+    //看页面显示的五个图片就是动态数据了
+    //getters是为了防止a.b.c
+```
+
+**Search/SearchSelector.vue**
+
+```js
+export default {
+    name:"SearchSelector"
+        computed:{
+            ...mapGetters(['attrsList','trademarkList'])
+    }
+    //去组件中看一下SearchSelector组件有没有数据,有了再去展示,
+}
+//html部分
+class="logo-list" 留一个li,遍历
+看search页面有没有品牌
+class='type-wrap',留一个div,,遍历
+//每一个Object是一个属性
+//这里一定是个双层for循环,属性和属性值都要遍历
+class="type-list",留一个li,遍历属性值
+刷新search页面,就有8个属性对应8个属性值,search数据就算展示完成
+
+```
+
+**pages/Search/index.vue**
+
+```js
+//解决search页输入搜索参数或者点击类别不会发请求的bug
+//原因是因为mounted只能执行一次,因为search是一个路由组件,切换的时候才会创建和销毁
+watch:{
+    //一旦发生变化,路径就变了,就要发请求
+    $route(){
+      //把路由当中的keyword还有相关的类别名称及类别id获取到，添加到searchParams搜索条件当中
+      //如果有那么搜索条件当中就有了，如果没有那就是初始化参数
+      this.handlerSearchParams()
+      this.getGoodsListInfo();
+    }
+}
+methods:{
+    getGoodsListInfo() {
+        //发请求
+      this.$store.dispatch("getGoodsListInfo", this.searchParams);
+    },
+    //封装函数
+    handlerSearchParams() {
+     //从路由当中获取categoryName和keyWord
+   //把路由当中的keyword还有相关的类别名称及类别id获取到,添加searchParams搜索条件当中
+      let { keyword } = this.$route.params;
+      let {
+        categoryName,
+        category1Id,
+        category2Id,
+        category3Id,
+      } = this.$route.query;
+
+      let searchParams = {
+        ...this.searchParams,
+        keyword,
+        categoryName,
+        category1Id,
+        category2Id,
+        category3Id,
+      };
+
+      //这个参数，如果传的是空串，就没必要，剁了
+      //为了节省传递数据占用的带宽，为了让后端压力减小
+        //把属性名拿出来放在数组里面
+      Object.keys(searchParams).forEach((item) => {
+        if (searchParams[item] === "") {
+          delete searchParams[item];
+        }
+      });
+
+      //把我们搜索的参数数据变为当前的这个处理后的对象
+      this.searchParams = searchParams;
+    },
+}
+//看页面点击搜索或者点击分类列表测试
+```
+
+
 
 50、search组件动态显示（先不搜索，获取数据去动态展示）
 	data设置初始准备参数已经设置好了
@@ -1837,23 +2048,60 @@ import "swiper/css/swiper.css";
 
 
 
+51、根据分类和用户点击的关键字进行搜索，解决在search组件内部再进行搜索的bug
 
-51、根据分类和关键字进行搜索，解决在search组件内部再进行搜索的bug
-	
-	真正到了搜索页面我们都要去解析拿到相关的参数  修改我们的搜索参数
-		beforeMount 去同步更新data数据
-		mounted     去异步发送请求
-	
-	在搜索页重新输入关键字或者点击类别不会再发送请求，因为mounted只会执行一次，需要监视路由变化
+- 用户可能从首页搜索 , 带了参数了 , 用户在搜索的时候,categoryName就有值了 , 这是初始化参数
+- 用户很可能从输入框搜索 , 也可能点击类别搜索 , 在搜索页面都要把params和query拿到
 
+**pages/Search/index.vue**
+
+```js
+真正到了搜索页面我们都要去解析拿到相关的参数  修改我们的搜索参数
+	beforeMount 去同步更新data数据
+	mounted     去异步发送请求
+
+在搜索页重新输入关键字或者点击类别不会再发送请求，因为mounted只会执行一次，需要监视路由变化
+srcpages/Search/index.vue
+//根据类别及关键字搜索
+//mounted一般用来异步发送请求,请求数据
+//beforMount一般用来同步处理数据(参数)
+beforeMount(){
+   //重复代码,封装起来
+    
+}
+//现在看搜索页,属性就没了
+    
+    
+```
 
 ​	
-​	
+
+
 
 52、动态显示和删除选中的搜索条件发送请求
 	判断参数内部是否存在categoryName  存在就显示
 	判断参数内部是否存在keyword 存在就显示
 	点击事件，如果删除就把参数对应的数据清除，顺便发送新的请求
+
+**Search/index.vue**
+
+```js
+class="fl sui-tag"
+methods:{
+    //移除面包屑中的类名请求参数,相当于删除query
+    removeCategoryName(){
+        this.searchParams.categoryName=''
+       //不能直接dispatch,因为它改不了路由当中的路径 this.$route.push({name:'search',params:this.$route.params})
+    },
+    //删除面包屑当中的关键字
+    removeKeyword(){
+        this.searchParams.keyword='';
+     this.$route.push({name:'search',query:this.$route.query})
+    }
+    //现在测试删除面包屑,路径是否变化
+}
+```
+
 
 
 53、解决删除选中的搜索条件后路径不变的bug
@@ -1861,32 +2109,168 @@ import "swiper/css/swiper.css";
 	我们需要手动去push跳转到去除对应参数的新路由
 
 
+
+```js
+
+```
+
+
+
 54、解决删除关键字后，输入框没有更新输入的bug
 	组件间通信，删除关键字后通知header组件，全局事件总线的使用
 
+```js
 
-​	
+```
+
+
+
+
+
 55、根据品牌搜索（设置和删除）
 ​	给对应品牌添加点击事件
 ​	点击的时候需要给父组件search传递品牌的参数  参数结构参考接口文档
 ​	子向父通信
-​		
+**SearchSelector.vue**
+
+```js
+//发请求要通知父组件发请求,点击了品牌,把这个品牌传到父组件
+class="logo-list", 绑定单击事件是为了给爹传递参数,
+- @click="searchForTradmark"
+//先把id和name拼好
+methods:{
+    searchForTradmark('trademark'){
+        //需要给父亲传递tradmark数据,让父亲去发请求
+        //自定义事件专门子向父传递,父能看到儿子,给儿子绑定事件
+        //哪里在触发事件($emit),哪里就是在发送数据
+        this.$emit('searchForTradmark',trademark)//发送给searchForTradmark(tradmark)这个回调
+    }
+}
+
+```
+
+**Search/indx.vue**
+
+```js
+
+<SearchSelector @searchForTradmark='searchForTradmark' />
+    
+ removeTrademark(){
+    this.searchParams.trademark = ""
+    this.getGoodsListInfo();
+}
+  //使用自定义事件组件通信(子向父),达到根据品牌搜索
+searchForTrademark(tradmark){
+    this.searchParams.trademark=`${trademark.tmId}:${trademark.tmName}`
+    //发请求
+    this.getGoodsListInfo()
+}
+```
+
+**SearchSelector.vue**
+
+```js
+
+
+//v-if用这种写法
+//{{searchParams.trademark.split()}}//假报错
+//v-show就用这种写法
+{{(searchParams.trademark ? searchParams.trademark: '').split(':')[1]}}
+```
+
+
+
 56、根据属性搜索（设置和删除）
 ​	给对应的属性值添加点击事件
 ​	点击的时候需要给父组件search传递属性值参数  参数结构参考接口文档
 ​	使用组件间通信	
 ​	点击删除的时候从参数内部把对应的属性值参数删除，数组的方法
 
+**SearchSelector.vue**
+
+```js
+class="type-list"/li/a
+- @click="searchForAttrValue(attr,attrValue)"
+
+methods:{
+    searchForAttrValue(attr,attrValue){
+        this.$emit('searchForAttrValue',attr,attrValue)
+    }
+}
+```
+
+**Search/indx.vue**
+
+```js
+methods:{
+    //使用自定义事件组件通信(子向父),达到根据属性值搜索
+    searchForAttrValue(attr,attrValue){
+        //"属性ID:属性值:属性名"
+       //props里面如果有这个点击的属性值条件,就不需要再去发请求
+       //只要有一个满足结果就返回true ,测试,点击属性值点击第二次不发请求,换一个属性继续发请求
+        //let isTrue = this.searchParams.props.some(item=>item===`${attr.attrId}:${attrValue}:${attr.arrtName}`)
+       let num = this.searchParams.props.indexOf(`${attr.attrId}:${attrValue}:${attr.arrtName}`)
+       if(num !==-1) return
+        //if(isTrue) return
+  this.searchParams.props.push(`${attr.attrId}:${attrValue}:${attr.arrtName}`)
+        //发请求
+        this.getGoodsListInfo()
+    },
+        removeProp(index){
+            //删除某一个下标的属性值
+            this.searchParams.props.splice(index,1)
+            //重新发请求
+            this.getGoodsListInfo()
+        }
+}
+//数组的各种方法都要用,
+
+html部分
+class"with-x"
+- {{prop.split(':')[1]}}
+class"with-x"/<i></i>
+
+```
+
 
 
 
 day06
 
-
 57、解决在搜索页多次跳转后不能直接返回home的问题
 	查看之前书写的所有跳转路由
 	如果是搜索页往搜索页去跳转使用replace
 	如果是home页往搜索页去跳转使用push
+
+**Header/index.vue**
+
+```js
+if(this.$route.path !=='/home'){
+    this.$router.replace(location)
+}else{
+    this.$router.push(location)
+}
+```
+
+**TypeNav/index.vue**
+
+```js
+if(this.$route.path !=='/home'){
+    this.$router.replace(location)
+}else{
+    this.$router.push(location)
+}
+```
+
+**Search/indx.vue**
+
+```js
+removeCategoryName(){
+    this.$router.replace({name:'search',params:this.$route.params})
+}
+```
+
+
 
 58、getters的用法简化searchSelector中数据的获取  mapGetters使用
 
@@ -1901,10 +2285,11 @@ day06
 		
 		对的：我们需要使用Vue.set  this.$set方法  这样的添加属性就是响应式的   必须对响应式对象添加属性
  Vue.netxTick  this.$nextTick()
-			
+有set就是响应式 , 什么时候有set方法 ? 数据劫持的时候就有
+
 	删除：
 		错的： 直接delete删除对象当中的属性，不会导致页面更改
-			因为响应式属性只是在检测属性值的改变而不是检测属性的删除
+			因为响应式属性只是在检测属性值的改变而不是检测属性的删除,改成空串就可以了,页面就可以变化  
 	
 		对的：我们需要使用Vue.delete方法  除了删除，还添加了更新界面的操作
 

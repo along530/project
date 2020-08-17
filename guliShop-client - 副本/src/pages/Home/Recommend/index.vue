@@ -1,5 +1,5 @@
 <template>
-    <!--今日推荐-->
+  <!--今日推荐-->
   <div class="today-recommend">
     <div class="py-container">
       <ul class="recommend">
@@ -28,8 +28,8 @@
 
 <script>
 export default {
-  name: 'Recommend',
-}
+  name: "Recommend",
+};
 </script>
 
 <style lang="less" scoped>

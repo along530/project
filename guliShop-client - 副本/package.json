@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "gulishop-client",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "cache-loader": "^4.1.0",
     "core-js": "^3.6.5",
     "mockjs": "^1.1.0",
     "nprogress": "^0.2.0",

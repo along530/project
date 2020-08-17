@@ -1,7 +1,9 @@
-import Vue from "vue";
-import VueRouter from 'vue-router';
+import Vue from 'vue'
+import VueRouter from 'vue-router'
 import routes from '@/router/routes'
 Vue.use(VueRouter) //声明使用插件  vue的插件都要去声明使用  第三方免了
+
+
 
 //解决多次触发编程式导航  报错的问题
 const originPush = VueRouter.prototype.push  //保存原来的push函数 ，后面修改之后可以找到原来的
@@ -27,9 +29,8 @@ VueRouter.prototype.replace = function(location,onResolved,onRejected){
   }
 }
 
+
 const router = new VueRouter({
-  //配置应用中的所有路由
   routes
 })
-
-export default router;
+export default router

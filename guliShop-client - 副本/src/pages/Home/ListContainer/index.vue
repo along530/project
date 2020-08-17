@@ -4,25 +4,12 @@
     <div class="sortList clearfix">
       <div class="center">
         <!--banner轮播-->
-        <!-- <div class="swiper-container" ref="banner" id="mySwiper">
+        <!-- <div class="swiper-container" ref="banner">
           <div class="swiper-wrapper">
-            <div
-              class="swiper-slide"
-              v-for="banner in bannerList"
-              :key="banner.id"
-            >
+            <div class="swiper-slide" v-for="(banner, index) in bannerList" :key="banner.id">
               <img :src="banner.imgUrl" />
-            </div> -->
-            <!-- <div class="swiper-slide">
-              <img src="./images/banner2.jpg" />
             </div>
-            <div class="swiper-slide">
-              <img src="./images/banner3.jpg" />
-            </div>
-            <div class="swiper-slide">
-              <img src="./images/banner4.jpg" />
-            </div> -->
-          <!-- </div> -->
+          </div> -->
           <!-- 如果需要分页器 -->
           <!-- <div class="swiper-pagination"></div> -->
 
@@ -32,6 +19,7 @@
         </div> -->
         <SliderLoop :bannerList="bannerList"></SliderLoop>
       </div>
+
       <div class="right">
         <div class="news">
           <h4>
@@ -40,11 +28,21 @@
           </h4>
           <div class="clearix"></div>
           <ul class="news-list unstyled">
-            <li><span class="bold">[特惠]</span>备战开学季 全民半价购数码</li>
-            <li><span class="bold">[公告]</span>备战开学季 全民半价购数码</li>
-            <li><span class="bold">[特惠]</span>备战开学季 全民半价购数码</li>
-            <li><span class="bold">[公告]</span>备战开学季 全民半价购数码</li>
-            <li><span class="bold">[特惠]</span>备战开学季 全民半价购数码</li>
+            <li>
+              <span class="bold">[特惠]</span>备战开学季 全民半价购数码
+            </li>
+            <li>
+              <span class="bold">[公告]</span>备战开学季 全民半价购数码
+            </li>
+            <li>
+              <span class="bold">[特惠]</span>备战开学季 全民半价购数码
+            </li>
+            <li>
+              <span class="bold">[公告]</span>备战开学季 全民半价购数码
+            </li>
+            <li>
+              <span class="bold">[特惠]</span>备战开学季 全民半价购数码
+            </li>
           </ul>
         </div>
         <ul class="lifeservices">
@@ -106,18 +104,35 @@
 </template>
 
 <script>
+// import Swiper from "swiper";
+// import "swiper/css/swiper.css";
+
 import { mapState } from "vuex";
-import Swiper from "swiper";
-import "swiper/css/swiper.css";
+
 export default {
   name: "ListContainer",
   mounted() {
-    this.$store.dispatch("getBannerList"); //listContainer里面就有banner的数据了
+    //1、在这里实例化swiper是不行的
+    // 原因: 轮播图的结构还没有形成
+    //mounted内部才去请求数据，mounted内部已经实例化swiper
+  
+    // new Swiper(this.$refs.banner, {
+    //   // 如果需要分页器
+    //   pagination: {
+    //     el: ".swiper-pagination",
+    //   },
+    //   // 如果需要前进后退按钮
+    //   navigation: {
+    //     nextEl: ".swiper-button-next",
+    //     prevEl: ".swiper-button-prev",
+    //   },
+    // });
+    this.$store.dispatch("getBannerList");
   },
   computed: {
     ...mapState({
       bannerList: (state) => state.home.bannerList,
-    }), //bannerList里面就有数据了,通过vue工具查看
+    }),
   },
   // watch: {
   //   // bannerList(newVal,oldVal){
@@ -148,7 +163,7 @@ export default {
   //     },
   //   },
   // },
-}
+};
 </script>
 
 <style lang="less" scoped>

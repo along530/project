@@ -1904,6 +1904,73 @@ dispatch想要传递多个必须放在对象里面
 48、search模块vuex编码
 	编码和前面的类似  每写一步就测试一步
 
+```js
+src/api
+//第一步发请求
+export const reqGoodsListInfo =(searchParams)=>{
+	return Ajax({
+        url:'/list',
+        method:'post',
+        data:searchParams
+    })
+}
+reqGoodsListInfo({})
+
+//第二步拿数据
+src/store/search.js
+import {reqGoodsListInfo} from '@/api'
+
+const state = {
+  goodsListInfo:{}
+}
+const mutations = {
+  RECEIVEGOODSLISTINFO(state,goodsListInfo){
+    state.goodsListInfo = goodsListInfo
+  }
+}
+const actions = {
+  //如果通过dispatch去调用的函数，接收的第一个参数是context上下文，我们传递的参数是第二个，如果我们传递的是
+  //多个参数，需要使用对象传递给第二个
+  // dispatch('getGoodsListInfo','aaa','bbb')
+  async getGoodsListInfo({commit},searchParams){
+    const result = await reqGoodsListInfo(searchParams)
+    if(result.code === 200){
+      commit('RECEIVEGOODSLISTINFO',result.data)
+    }
+  }
+}
+const getters = {
+  attrsList(state){
+    return state.goodsListInfo.attrsList || []
+  },
+  goodsList(state){
+    return state.goodsListInfo.goodsList || []
+  },
+  trademarkList(state){
+    return state.goodsListInfo.trademarkList || []
+  }
+}
+export default {
+  state,
+  mutations,
+  actions,
+  getters
+}
+
+pages/Search/index.vue
+//第三部触发回调获取数据
+mounted() {
+    //发请求
+    this.getGoodsListInfo();
+  },
+  methods: {
+    getGoodsListInfo() {
+      this.$store.dispatch("getGoodsListInfo", this.searchParams);
+    },
+```
+
+
+
 49、搜索条件参数的理解和初始data收集参数准备
 	传递参数对象，至少得传递一个没有属性的对象
 	搜索参数是怎么组成的，参考文档
@@ -1913,7 +1980,7 @@ dispatch想要传递多个必须放在对象里面
 
 ```js
 export defalut{
-    
+   // data设置初始准备参数已经设置好了
     data(){
         return{
             searchParams:{
@@ -1932,7 +1999,7 @@ export defalut{
         };
     },
     mounted(){
-    //发请求
+    //在mounted内部可以发送请求·
     this.getGoodsListInfo()
 },
     beforeMouted(){
@@ -1943,6 +2010,7 @@ methods:{
         this.$store.dispatch('getGoodsListInfo',this.searchParams)
     }
 }
+    //在computed内部获取我们的数据
 computed:{
     ...mapGetters(['goodsList'])
 }
@@ -1958,7 +2026,11 @@ computed:{
     //getters是为了防止a.b.c
 ```
 
+50、search组件动态显示（先不搜索，获取数据去动态展示）
+
 **Search/SearchSelector.vue**
+
+- searchSelector组件内部数据动态展示
 
 ```js
 export default {
@@ -1980,6 +2052,8 @@ class="type-list",留一个li,遍历属性值
 ```
 
 **pages/Search/index.vue**
+
+- search页面商品动态数据展示
 
 ```js
 //解决search页输入搜索参数或者点击类别不会发请求的bug
@@ -2037,17 +2111,6 @@ methods:{
 
 
 
-50、search组件动态显示（先不搜索，获取数据去动态展示）
-	data设置初始准备参数已经设置好了
-	在mounted内部可以发送请求·
-	在computed内部获取我们的数据
-	search页面商品动态数据展示
-	searchSelector组件内部数据动态展示
-
-
-
-
-
 51、根据分类和用户点击的关键字进行搜索，解决在search组件内部再进行搜索的bug
 
 - 用户可能从首页搜索 , 带了参数了 , 用户在搜索的时候,categoryName就有值了 , 这是初始化参数
@@ -2066,7 +2129,7 @@ srcpages/Search/index.vue
 //mounted一般用来异步发送请求,请求数据
 //beforMount一般用来同步处理数据(参数)
 beforeMount(){
-   //重复代码,封装起来
+   //重复代码,在Search/index.vue里面封装起来
     
 }
 //现在看搜索页,属性就没了
@@ -2086,17 +2149,42 @@ beforeMount(){
 **Search/index.vue**
 
 ```js
-class="fl sui-tag"
+<li class="with-x" v-show="searchParams.categoryName">
+      {{searchParams.categoryName}}
+      <i @click="removeCategoryName">×</i>
+</li>
+
+<li class="with-x" v-show="searchParams.keyword">
+      {{searchParams.keyword}}
+      <i @click="removeKeyword">×</i>
+</li>
+
+<li class="with-x" v-show="searchParams.trademark">
+              {{(searchParams.trademark ? searchParams.trademark : '').split(':')[1]}}
+  <!-- {{searchParams.trademark.split(':')[1]}}  -->
+              <i @click="removeTrademark">×</i>
+</li>
+
+
+<li class="with-x" v-for="(prop, index) in searchParams.props" :key="index">
+              {{prop.split(':')[1]}}
+              <i @click="removeProp(index)">×</i>
+</li>
+===================================================
 methods:{
     //移除面包屑中的类名请求参数,相当于删除query
     removeCategoryName(){
         this.searchParams.categoryName=''
-       //不能直接dispatch,因为它改不了路由当中的路径 this.$route.push({name:'search',params:this.$route.params})
+       不能直接dispatch,因为它改不了路由当中的路径 this.$route.push({name:'search',params:this.$route.params})
     },
+        
     //删除面包屑当中的关键字
     removeKeyword(){
         this.searchParams.keyword='';
-     this.$route.push({name:'search',query:this.$route.query})
+  //解决删除选中的搜索条件后路径不变的bug
+	//上面删除发送请求我们的请求路径还是不变
+	//我们需要手动去push跳转到去除对应参数的新路由      
+  this.$router.replace({name:'search',query:this.$route.query})
     }
     //现在测试删除面包屑,路径是否变化
 }
@@ -2104,23 +2192,13 @@ methods:{
 
 
 
-53、解决删除选中的搜索条件后路径不变的bug
-	上面删除发送请求我们的请求路径还是不变
-	我们需要手动去push跳转到去除对应参数的新路由
-
-
-
-```js
-
-```
-
 
 
 54、解决删除关键字后，输入框没有更新输入的bug
 	组件间通信，删除关键字后通知header组件，全局事件总线的使用
 
 ```js
-
+//老师没讲
 ```
 
 
@@ -2136,12 +2214,15 @@ methods:{
 ```js
 //发请求要通知父组件发请求,点击了品牌,把这个品牌传到父组件
 class="logo-list", 绑定单击事件是为了给爹传递参数,
-- @click="searchForTradmark"
+<li 
+ v-for="trademark in trademarkList" :key="trademark.tmId" @click="searchForTrademark(trademark)"
+ >{{trademark.tmName}}
+ </li>
 //先把id和name拼好
 methods:{
-    searchForTradmark('trademark'){
+    searchForTradmark(trademark){
         //需要给父亲传递tradmark数据,让父亲去发请求
-        //自定义事件专门子向父传递,父能看到儿子,给儿子绑定事件
+        //自定义事件专门子向父组件传递,父能看到儿子,给儿子绑定事件
         //哪里在触发事件($emit),哪里就是在发送数据
         this.$emit('searchForTradmark',trademark)//发送给searchForTradmark(tradmark)这个回调
     }
@@ -2154,7 +2235,7 @@ methods:{
 ```js
 
 <SearchSelector @searchForTradmark='searchForTradmark' />
-    
+    //删除面包屑当中的品牌参数
  removeTrademark(){
     this.searchParams.trademark = ""
     this.getGoodsListInfo();
@@ -2175,7 +2256,7 @@ searchForTrademark(tradmark){
 //v-if用这种写法
 //{{searchParams.trademark.split()}}//假报错
 //v-show就用这种写法
-{{(searchParams.trademark ? searchParams.trademark: '').split(':')[1]}}
+{{(searchParams.trademark ? searchParams.trademark: '').split(':')[1]}} 
 ```
 
 
@@ -2190,7 +2271,7 @@ searchForTrademark(tradmark){
 
 ```js
 class="type-list"/li/a
-- @click="searchForAttrValue(attr,attrValue)"
+- <a href="javascript:;" @click="searchForAttrValue(attr,attrValue)">{{attrValue}}</a>
 
 methods:{
     searchForAttrValue(attr,attrValue){

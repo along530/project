@@ -1,8 +1,5 @@
 <template>
   <div>
-    <!-- <TypeNav></TypeNav>
-    <SearchSelector /> -->
-      <div>
     <TypeNav />
     <div class="main">
       <div class="py-container">
@@ -14,24 +11,29 @@
             </li>
           </ul>
           <ul class="fl sui-tag">
-            <li class="with-x">手机</li>
-            <li class="with-x">
-              iphone
-              <i>×</i>
+            <li class="with-x" v-show="searchParams.categoryName">
+              {{searchParams.categoryName}}
+              <i @click="removeCategoryName">×</i>
             </li>
-            <li class="with-x">
-              华为
-              <i>×</i>
+            <li class="with-x" v-show="searchParams.keyword">
+              {{searchParams.keyword}}
+              <i @click="removeKeyword">×</i>
             </li>
-            <li class="with-x">
-              OPPO
-              <i>×</i>
+            <li class="with-x" v-show="searchParams.trademark">
+              {{(searchParams.trademark ? searchParams.trademark : '').split(':')[1]}}
+              <!-- {{searchParams.trademark.split(':')[1]}}  -->
+              <i @click="removeTrademark">×</i>
+            </li>
+
+            <li class="with-x" v-for="(prop, index) in searchParams.props" :key="index">
+              {{prop.split(':')[1]}}
+              <i @click="removeProp(index)">×</i>
             </li>
           </ul>
         </div>
 
         <!--selector-->
-        <SearchSelector />
+        <SearchSelector  @searchForTrademark="searchForTrademark"  @searchForAttrValue="searchForAttrValue"/>
 
         <!--details-->
         <div class="details clearfix">
@@ -61,7 +63,7 @@
           </div>
           <div class="goods-list">
             <ul class="yui3-g">
-              <li class="yui3-u-1-5" v-for="(goods, index) in goodsList" :key="goods.id">
+              <li class="yui3-u-1-5" v-for="(goods) in goodsList" :key="goods.id">
                 <div class="list-wrap">
                   <div class="p-img">
                     <a href="item.html" target="_blank">
@@ -136,19 +138,17 @@
       </div>
     </div>
   </div>
-  </div>
 </template>
 
 <script>
 import SearchSelector from "./SearchSelector/SearchSelector";
-import {mapGetters} from 'vuex';
-
+import { mapGetters } from "vuex";
 export default {
   name: "Search",
   data() {
     return {
+      //用户的初始化参数  里面放的是用户可能搜索的所有条件，只不过初始为空的
       searchParams: {
-        //用户的初始化参数,里面放的是用户可能搜索的所有条件,只不过初始为空的
         category1Id: "",
         category2Id: "",
         category3Id: "",
@@ -162,17 +162,126 @@ export default {
       },
     };
   },
-  beforeMouted() {
+  beforeMount() {
+    //根据类别及关键字搜索
+    //mounted一般用来异步请求数据
+    //beforMount 一般用来同步处理数据（参数）
+    //把路由当中的keyword还有相关的类别名称及类别id获取到，添加到searchParams搜索条件当中
+    //如果有那么搜索条件当中就有了，如果没有那就是初始化参数
+
+    // let { keyword } = this.$route.params;
+    // let {
+    //   categoryName,
+    //   category1Id,
+    //   category2Id,
+    //   category3Id,
+    // } = this.$route.query;
+
+    // let searchParams = {
+    //   ...this.searchParams,
+    //   keyword,
+    //   categoryName,
+    //   category1Id,
+    //   category2Id,
+    //   category3Id,
+    // };
+
+    // //这个参数，如果传的是空串，就没必要，剁了
+    // //为了节省传递数据占用的带宽，为了让后端压力减小
+    // Object.keys(searchParams).forEach((item) => {
+    //   if (searchParams[item] === "") {
+    //     delete searchParams[item];
+    //   }
+    // });
+
+    // //把我们搜索的参数数据变为当前的这个处理后的对象
+    // this.searchParams = searchParams;
     this.handlerSearchParams();
   },
+
   mounted() {
-    //发请求
     this.getGoodsListInfo();
   },
   methods: {
     getGoodsListInfo() {
       this.$store.dispatch("getGoodsListInfo", this.searchParams);
     },
+    //处理请求参数
+    handlerSearchParams() {
+      let { keyword } = this.$route.params;
+      let {
+        categoryName,
+        category1Id,
+        category2Id,
+        category3Id,
+      } = this.$route.query;
+
+      let searchParams = {
+        ...this.searchParams,
+        keyword,
+        categoryName,
+        category1Id,
+        category2Id,
+        category3Id,
+      };
+
+      //这个参数，如果传的是空串，就没必要，剁了
+      //为了节省传递数据占用的带宽，为了让后端压力减小
+      Object.keys(searchParams).forEach((item) => {
+        if (searchParams[item] === "") {
+          delete searchParams[item];
+        }
+      });
+
+      //把我们搜索的参数数据变为当前的这个处理后的对象
+      this.searchParams = searchParams;
+    },
+    //删除面包屑当中的类名请求参数
+    removeCategoryName() {
+      this.searchParams.categoryName = "";
+      // this.getGoodsListInfo();
+      //不能直接dispatch 因为它改不了路由当中的路径
+      // this.$router.push({name:'search',params:this.$route.params})
+      this.$router.replace({name:'search',params:this.$route.params})
+    },
+    //删除面包屑当中的关键字请求参数
+    removeKeyword() {
+      this.searchParams.keyword = "";
+      // this.getGoodsListInfo();
+      this.$router.replace({name:'search',query:this.$route.query})
+    },
+
+    //使用自定义事件组件通信（子向父），达到根据品牌搜索
+    searchForTrademark(trademark){
+      //回调函数再谁当中，谁就是接收数据的
+      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`
+      this.getGoodsListInfo();
+    },
+    //删除面包屑当中的品牌参数
+    removeTrademark(){
+      this.searchParams.trademark = ""
+      this.getGoodsListInfo();
+    },
+     //使用自定义事件组件通信（子向父），达到根据属性值搜索
+    searchForAttrValue(attr,attrValue){
+      //"属性ID:属性值:属性名"
+      //要先去判断props当中是否已经存在这个点击的属性值条件，如果有了就不需要再去发请求
+      // let isTrue = this.searchParams.props.some(item => item === `${attr.attrId}:${attrValue}:${attr.attrName}`)
+      // if(isTrue) return
+
+      let num = this.searchParams.props.indexOf(`${attr.attrId}:${attrValue}:${attr.attrName}`)
+      if(num !== -1) return 
+      
+      this.searchParams.props.push(`${attr.attrId}:${attrValue}:${attr.attrName}`)
+      this.getGoodsListInfo();
+    },
+    
+    removeProp(index){
+      //删除某一个下标的属性值
+      this.searchParams.props.splice(index,1)
+      this.getGoodsListInfo();
+    }
+
   },
   computed: {
     ...mapGetters(["goodsList"]),
@@ -180,17 +289,18 @@ export default {
   components: {
     SearchSelector,
   },
-   watch: {
+
+  //解决search页输入搜索参数或者点击类别不会发请求的bug
+  //原因是因为mounted只能执行一次 search是一个路由组件，切换的时候才会创建和销毁
+  watch: {
     $route() {
       //把路由当中的keyword还有相关的类别名称及类别id获取到，添加到searchParams搜索条件当中
       //如果有那么搜索条件当中就有了，如果没有那就是初始化参数
-      this.handlerSearchParams()
+      this.handlerSearchParams();
       this.getGoodsListInfo();
     },
   },
 };
-
-
 </script>
 
 <style lang="less" scoped>

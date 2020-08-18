@@ -6,9 +6,13 @@ import TypeNav from "@/components/TypeNav";
 import "@/mock/mockServer";
 import SliderLoop from "@/components/SliderLoop";
 import "swiper/css/swiper.min.css";
+import Pagination from '@/components/Pagination'
+
 //全局注册TypeNav , 因为它是一个公共的组件
 Vue.component("TypeNav", TypeNav);
 Vue.component("SliderLoop", SliderLoop);
+Vue.component('Pagination',Pagination)
+
 Vue.config.productionTip = false;
 
 new Vue({

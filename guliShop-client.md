@@ -2479,7 +2479,7 @@ class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
     	和上面背景色一样的,谁有背景色才有图标
 		综合标签,
    <li :class="{active:orderFlag === '1'}">
-          <a href="javascript:;" @click="changeOrder('1')">
+          <a href="javascript:;">
             综合
             <i
               class="iconfont"
@@ -2491,7 +2491,7 @@ class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
 
 		价格标签也设置
     <li :class="{active:orderFlag === '2'}">
-              <a href="javascript:;" @click="changeOrder('2')">
+              <a href="javascript:;">
                 价格
                 <i
                   class="iconfont"
@@ -2509,8 +2509,8 @@ class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
 methods:{
     //综合和价格排序切换规则
     changeOrder(orderFlag){//接收1或者2
-        let originOrderFlag = thissearchParams.order.split(':')[0]
-        let originOrderType = thissearchParams.order.split(':')[1]
+        let originOrderFlag = this.searchParams.order.split(':')[0]
+        let originOrderType = this.searchParams.order.split(':')[1]
         let newOrder = '';
         if(orderFlag===originOrderFlag){
             //代表你点的还是原来排序的那个,我们只需要改变排序类型就可以了
@@ -2524,14 +2524,7 @@ methods:{
         this.getGoodsListInfo()
     }
 }
-computed:{
-    orderFlag(){
-      return this.searchParams.order.split(':')[0]
-    },
-    orderType(){
-      return this.searchParams.order.split(':')[1]
-    },
-}
+
 
 ```
 
@@ -2574,7 +2567,7 @@ components新建Pagination,新建index.vue
 直接放进来
 
 main.js
-引入pagination
+引入Pagination
 全局注册
 Vue.component('Pagination',Pagination)
 
@@ -2636,7 +2629,7 @@ pages/Search/index.vue
 <Pagination :currentPageNum = "searchParams.pageNo" 
 :total="goodsListInfo.total"
 :pageSize="searchParams.pageSize"
-:continueSize="3"
+:continueSize="5"
 />
     pageSize:2,
         
@@ -2692,16 +2685,24 @@ props:{
                 return {start,end}
             }
     }
-<button>9</button> 
-<button :disabled="currentPageNum===1">上一页</button> 
-<button v-if="startEnd.start :class="active:currentPageNum === 1"> 1">1</button> 
+
+<button :disabled="currentPageNum === 1" @click="$emit('changePageNum',currentPageNum - 1)">上一页</button>
+<button v-if="startEnd.start > 1" @click="$emit('changePageNum',1)">1</button>
 <button v-if="sartEnd.start > 2">.../button> 
+    
+<!-- vfor和vif可以同时出现，但是vfor优先级比vif高 -->
+ <button
+      v-for="page in startEnd.end"
+      :key="page"
+      v-if="page >= startEnd.start"
+      :class="{active:currentPageNum === page}"
+      @click="$emit('changePageNum',page)"
+    >{{page}}
+</button>
 
-<button v-for="page in startEnd.end" :key="page" v-if="page >= startEnd.start" :class="{active:currentPageNum === page}">{{page}}</button> 
-
-<button v-if="startEnd.end < totalPageNum-1">...</button> 
-<button v-if="startEnd.end < totalPageNum" :class="active:currentPageNum === totalPageNum">{{totalPageNum}}</button> 
-<button :disabled="currentPageNum === totalPageNum>下一页</button> 
+<button v-if="startEnd.end < totalPageNum - 1">···</button>
+    <button v-if="startEnd.end < totalPageNum" @click="$emit('changePageNum',totalPageNum)">{{totalPageNum}}</button>
+    <button :disabled="currentPageNum === totalPageNum" @click="$emit('changePageNum',currentPageNum + 1)">下一页</button>
 
 
 ```
@@ -2724,15 +2725,26 @@ props:{
 			如果当前页和目前遍历的这个页码是一样的，那么就添加active类
 
     **Pagination/index.vue**
-<button :disabled="currentPageNum===1" @click="$emit('changePageNum',currentPageNum - 1)">上一页</button> 
-<button v-if="startEnd.start :class="active:currentPageNum === 1"> 1">1</button> 
-<button v-if="sartEnd.start > 2">.../button> 
+<div class="pagination">
+    <button :disabled="currentPageNum === 1" @click="$emit('changePageNum',currentPageNum - 1)">上一页</button>
+    <button v-if="startEnd.start > 1" @click="$emit('changePageNum',1)">1</button>
+    <button v-if="startEnd.start > 2">···</button>
 
-<button v-for="page in startEnd.end" :key="page" v-if="page >= startEnd.start" :class="{active:currentPageNum === page}">{{page}}</button> 
+    <!-- vfor和vif可以同时出现，但是vfor优先级比vif高 -->
+    <button
+      v-for="page in startEnd.end"
+      :key="page"
+      v-if="page >= startEnd.start"
+      :class="{active:currentPageNum === page}"
+      @click="$emit('changePageNum',page)"
+    >{{page}}</button>
 
-<button v-if="startEnd.end < totalPageNum-1">...</button> 
-<button v-if="startEnd.end < totalPageNum" :class="active:currentPageNum === totalPageNum">{{totalPageNum}}</button> 
-<button :disabled="currentPageNum === totalPageNum>下一页</button> 
+    <button v-if="startEnd.end < totalPageNum - 1">···</button>
+    <button v-if="startEnd.end < totalPageNum" @click="$emit('changePageNum',totalPageNum)">{{totalPageNum}}</button>
+    <button :disabled="currentPageNum === totalPageNum" @click="$emit('changePageNum',currentPageNum + 1)">下一页</button>
+
+    <button style="margin-left: 30px">共 {{total}} 条</button>
+  </div>
 ```
 
 
@@ -2745,21 +2757,22 @@ props:{
 更新页码父组件要去发请求
 		把自身改变页码传给父组件修改参数重新发送请求
     Search/index.vue
-<Pagination @changePageNum=""/>
+<Pagination @changePageNum="changePageNum"/>
     
 methods:{
     changePageNum(page){
         this.searchParams.pageNo = page
         this.getGoodsListInfo()
     },
-    this.searchParams.pageNo=1//相关的都要加,目的是改变搜索条件之后都到第一页
 }
+
 ```
 
 
 ```js
 	父组件搜索条件更新，需要当前页码修改为1
     分页也就从1开始了，因为它是父的页码传递过去的
+    相关的7个都要加,目的是改变搜索条件之后都到第一页
     **Search/index.vue**
         
      //删除面包屑当中的类名请求参数
@@ -2832,6 +2845,45 @@ const router = new VueRouter({
   }
 })
 //router暴露出去
+
+store创建detail.js
+import {reqGoodsDetailInfo} from '@/api'
+const state = {
+  goodsDetailInfo:{}
+}
+const mutations = {
+  RECEIVEGOODSDETAILINFO(state,goodsDetailInfo){
+    state.goodsDetailInfo = goodsDetailInfo
+  }
+}
+const actions = {
+  async getGoodsDetailInfo({commit},skuId){
+    const result = await reqGoodsDetailInfo(skuId)
+    if(result.code === 200){
+      commit('RECEIVEGOODSDETAILINFO',result.data)
+    }
+  }
+}
+const getters = {
+  categoryView(state){
+    return state.goodsDetailInfo.categoryView || {}  
+    //为什么会加个或者{} 为了防止出现Undefined,后期使用点语法报错
+  },
+  skuInfo(state){
+    return state.goodsDetailInfo.skuInfo || {}
+  },
+  spuSaleAttrList(state){
+    return state.goodsDetailInfo.spuSaleAttrList || []
+  }
+}
+export default {
+  state,
+  mutations,
+  actions,
+  getters
+}
+
+
 查看到详情页是否在最上面
 ```
 
@@ -2908,10 +2960,10 @@ methods:{
 
 clsaa="conPoin"加3个span
 <!-- 导航路径区域 -->
-      <div class="conPoin">
-        <span>{{categoryView.category1Name}}</span>
-        <span>{{categoryView.category2Name}}</span>
-        <span>{{categoryView.category3Name}}</span>
+<div class="conPoin">
+    <span>{{categoryView.category1Name}}</span>
+    <span>{{categoryView.category2Name}}</span>
+    <span>{{categoryView.category3Name}}</span>
 </div>
 
 class="InfoName"
@@ -2961,6 +3013,7 @@ dd留一个,遍历,class="active"
 看页面的销售属性是否是三个:选择颜色/版本/套装
 ```
 
+**8月19日 完成进度**
 
 
 

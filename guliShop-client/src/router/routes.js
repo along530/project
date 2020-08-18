@@ -2,13 +2,13 @@ import Home from "@/pages/Home";
 import Search from "@/pages/Search";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Detail from "@/pages/Detail";
 
 export default [
   //专门配置各种路由的地方
   {
     path: "/home",
-    component:
-     Home,
+    component: Home,
   },
   {
     //: ?
@@ -37,6 +37,10 @@ export default [
     meta: {
       isHide: true,
     },
+  },
+  {
+    path: "/detail/:skuId",
+    component: Detail,
   },
   //重定向路由,根目录重定向到home
   {

@@ -12,21 +12,29 @@
           </ul>
           <ul class="fl sui-tag">
             <li class="with-x" v-show="searchParams.categoryName">
-              {{searchParams.categoryName}}
+              {{ searchParams.categoryName }}
               <i @click="removeCategoryName">×</i>
             </li>
             <li class="with-x" v-show="searchParams.keyword">
-              {{searchParams.keyword}}
+              {{ searchParams.keyword }}
               <i @click="removeKeyword">×</i>
             </li>
             <li class="with-x" v-show="searchParams.trademark">
-              {{(searchParams.trademark ? searchParams.trademark : '').split(':')[1]}}
+              {{
+                (searchParams.trademark ? searchParams.trademark : "").split(
+                  ":"
+                )[1]
+              }}
               <!-- {{searchParams.trademark.split(':')[1]}}  -->
               <i @click="removeTrademark">×</i>
             </li>
 
-            <li class="with-x" v-for="(prop, index) in searchParams.props" :key="index">
-              {{prop.split(':')[1]}}
+            <li
+              class="with-x"
+              v-for="(prop, index) in searchParams.props"
+              :key="index"
+            >
+              {{ prop.split(":")[1] }}
               <i @click="removeProp(index)">×</i>
             </li>
           </ul>
@@ -43,14 +51,26 @@
           <div class="sui-navbar">
             <div class="navbar-inner filter">
               <ul class="sui-nav">
-                <li :class="{active:orderFlag === '1'}">
+                <!-- //排序的标志：1代表综合排序 2代表价格排序    排序的类型：'desc'降序 'asc'升序
+                // 4种：综合升序  综合降序  价格升序  价格降序
+                //1、背景色谁有  看order的数据 排序的标志是谁  1代表综合  2价格 
+                //2、 图标的处理
+                      1》、用什么                 iconfont  在线
+                      2》、图标在哪里显示          和上面背景色是一样的
+                      3》、图标是向上的还是向下的
+
+                //3、点击切换排序规则
+                -->
+                <li :class="{ active: orderFlag === '1' }">
                   <a href="javascript:;" @click="changeOrder('1')">
                     综合
                     <i
                       class="iconfont"
-                      :class="{icondown:orderType === 'desc',iconup:orderType === 'asc'}"
+                      :class="{
+                        icondown: orderType === 'desc',
+                        iconup: orderType === 'asc',
+                      }"
                       v-if="orderFlag === '1'"
-                      @click="changeOrder('1')"
                     ></i>
                   </a>
                 </li>
@@ -63,14 +83,16 @@
                 <li>
                   <a href="#">评价</a>
                 </li>
-                <li :class="{active:orderFlag === '2'}">
+                <li :class="{ active: orderFlag === '2' }">
                   <a href="javascript:;" @click="changeOrder('2')">
                     价格
                     <i
                       class="iconfont"
-                      :class="{icondown:orderType === 'desc',iconup:orderType=== 'asc'}"
+                      :class="{
+                        icondown: orderType === 'desc',
+                        iconup: orderType === 'asc',
+                      }"
                       v-if="orderFlag === '2'"
-                      @click="changeOrder('1')"
                     ></i>
                   </a>
                 </li>
@@ -79,25 +101,27 @@
           </div>
           <div class="goods-list">
             <ul class="yui3-g">
-              <li class="yui3-u-1-5" v-for="(goods) in goodsList" :key="goods.id">
+              <li
+                class="yui3-u-1-5"
+                v-for="(goods, index) in goodsList"
+                :key="goods.id"
+              >
                 <div class="list-wrap">
                   <div class="p-img">
-                    <a href="item.html" target="_blank">
+                    <router-link :to="`/detail/${goods.id}`">
                       <img :src="goods.defaultImg" />
-                    </a>
+                    </router-link>
                   </div>
                   <div class="price">
                     <strong>
                       <em>¥</em>
-                      <i>{{goods.price}}</i>
+                      <i>{{ goods.price }}</i>
                     </strong>
                   </div>
                   <div class="attr">
-                    <a
-                      target="_blank"
-                      href="item.html"
-                      title="促销信息，下单即赠送三个月CIBN视频会员卡！【小米电视新品4A 58 火爆预约中】"
-                    >{{goods.title}}</a>
+                    <router-link :to="`/detail/${goods.id}`">
+                      {{ goods.title }}
+                    </router-link>
                   </div>
                   <div class="commit">
                     <i class="command">
@@ -110,46 +134,24 @@
                       href="success-cart.html"
                       target="_blank"
                       class="sui-btn btn-bordered btn-danger"
-                    >加入购物车</a>
-                    <a href="javascript:void(0);" class="sui-btn btn-bordered">收藏</a>
+                      >加入购物车</a
+                    >
+                    <a href="javascript:void(0);" class="sui-btn btn-bordered"
+                      >收藏</a
+                    >
                   </div>
                 </div>
               </li>
             </ul>
           </div>
-          <div class="fr page">
-            <div class="sui-pagination clearfix">
-              <ul>
-                <li class="prev disabled">
-                  <a href="#">«上一页</a>
-                </li>
-                <li class="active">
-                  <a href="#">1</a>
-                </li>
-                <li>
-                  <a href="#">2</a>
-                </li>
-                <li>
-                  <a href="#">3</a>
-                </li>
-                <li>
-                  <a href="#">4</a>
-                </li>
-                <li>
-                  <a href="#">5</a>
-                </li>
-                <li class="dotted">
-                  <span>...</span>
-                </li>
-                <li class="next">
-                  <a href="#">下一页»</a>
-                </li>
-              </ul>
-              <div>
-                <span>共10页&nbsp;</span>
-              </div>
-            </div>
-          </div>
+          <!-- 从父组件给分页组件传递的数据 -->
+          <Pagination
+            :currentPageNum="searchParams.pageNo"
+            :total="goodsListInfo.total"
+            :pageSize="searchParams.pageSize"
+            :continueSize="5"
+            @changePageNum="changePageNum"
+          />
         </div>
       </div>
     </div>
@@ -158,7 +160,7 @@
 
 <script>
 import SearchSelector from "./SearchSelector/SearchSelector";
-import { mapGetters } from "vuex";
+import { mapGetters, mapState } from "vuex";
 export default {
   name: "Search",
   data() {
@@ -170,14 +172,15 @@ export default {
         category3Id: "",
         categoryName: "",
         keyword: "",
-        order: "1:desc",
+        order: "2:desc",
         pageNo: 1,
-        pageSize: 5,
+        pageSize: 2,
         props: [],
         trademark: "",
       },
     };
   },
+
   beforeMount() {
     //根据类别及关键字搜索
     //mounted一般用来异步请求数据
@@ -254,6 +257,7 @@ export default {
     },
     //删除面包屑当中的类名请求参数
     removeCategoryName() {
+      this.searchParams.pageNo = 1;
       this.searchParams.categoryName = "";
       // this.getGoodsListInfo();
       //不能直接dispatch 因为它改不了路由当中的路径
@@ -262,20 +266,26 @@ export default {
     },
     //删除面包屑当中的关键字请求参数
     removeKeyword() {
+      this.searchParams.pageNo = 1;
+
+      this.$bus.$emit("clearKeyword"); //通知header组件把关键字清空
+
       this.searchParams.keyword = "";
       // this.getGoodsListInfo();
       this.$router.replace({ name: "search", query: this.$route.query });
-      this.$bus.$emit("clearKeyword"); //通知header组件把关键字清空
     },
 
     //使用自定义事件组件通信（子向父），达到根据品牌搜索
     searchForTrademark(trademark) {
       //回调函数再谁当中，谁就是接收数据的
+      this.searchParams.pageNo = 1;
+
       this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`;
       this.getGoodsListInfo();
     },
     //删除面包屑当中的品牌参数
     removeTrademark() {
+      this.searchParams.pageNo = 1;
       this.searchParams.trademark = "";
       this.getGoodsListInfo();
     },
@@ -291,6 +301,8 @@ export default {
       );
       if (num !== -1) return;
 
+      this.searchParams.pageNo = 1;
+
       this.searchParams.props.push(
         `${attr.attrId}:${attrValue}:${attr.attrName}`
       );
@@ -299,40 +311,53 @@ export default {
 
     removeProp(index) {
       //删除某一个下标的属性值
+      this.searchParams.pageNo = 1;
       this.searchParams.props.splice(index, 1);
+      this.getGoodsListInfo();
+    },
+    //综合和价格排序切换规则
+    changeOrder(orderFlag) {
+      // let originOrderFlag = this.searchParams.order.split(':')[0]
+      //优化后
+      let originOrderFlag = this.orderFlag;
+      // let originOrderType = this.searchParams.order.split(':')[1]
+      let originOrderType = this.orderType;
+      let newOrder = "";
+      if (orderFlag === originOrderFlag) {
+        //代表点的还是原来排序的那个，那么我们只需要改变排序类型就完了
+        newOrder = `${originOrderFlag}:${
+          originOrderType === "desc" ? "asc" : "desc"
+        }`;
+      } else {
+        //代表点击的不是原来排序的那个，那么我们需要去改变排序的标志，类型默认就行
+        newOrder = `${orderFlag}:desc`;
+      }
+
+      //把新的排序规则给了搜索参数，重新发请求
+      this.searchParams.pageNo = 1;
+      this.searchParams.order = newOrder;
+      this.getGoodsListInfo();
+    },
+
+    changePageNum(page) {
+      this.searchParams.pageNo = page;
       this.getGoodsListInfo();
     },
   },
   computed: {
+    ...mapState({
+      goodsListInfo: (state) => state.search.goodsListInfo,
+    }),
     ...mapGetters(["goodsList"]),
-    orderFlag(){
-      return this.searchParams.order.split(':')[0]
+    orderFlag() {
+      return this.searchParams.order.split(":")[0];
     },
-    orderType(){
-      return this.searchParams.order.split(':')[1]
+    orderType() {
+      return this.searchParams.order.split(":")[1];
     },
   },
   components: {
     SearchSelector,
-  },
-  //综合和价格排序切换规则
-  changeOrder(orderFlag) {
-    //接收1或者2
-    let originOrderFlag = thissearchParams.order.split(":")[0];
-    let originOrderType = thissearchParams.order.split(":")[1];
-    let newOrder = "";
-    if (orderFlag === originOrderFlag) {
-      //代表你点的还是原来排序的那个,我们只需要改变排序类型就可以了
-      newOrder = `${originOrderFlag}:${
-        originOrderType === "desc" ? "asc" : "desc"
-      }`;
-    } else {
-      //代表点击的不是原来排序的那个,那么我们需要去改变排序的标志,类型默认就行
-      newOrder = `${orderFlag}:desc`;
-    }
-    //把新的排序规则给了搜索参数,重新发请求
-    this.searchParams.order = newOrder;
-    this.getGoodsListInfo();
   },
 
   //解决search页输入搜索参数或者点击类别不会发请求的bug

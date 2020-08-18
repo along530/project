@@ -22,6 +22,12 @@ export const reqFloorList = ()=>{
         method:'get'
     })
 }
+export const reqGoodsDetailInfo=(skuId)=>{
+    return Ajax({
+        url:`/item/${skuId}`,
+        method:'get'
+    })
+}
 
 //searchParams,这个参数必须要有,至少得是一个没有属性的对象
 //参数如果是一个空的对象,代表搜索请求获取的是全部的数据

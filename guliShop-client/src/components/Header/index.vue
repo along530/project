@@ -10,7 +10,6 @@
             <span>请</span>
             <router-link to="login">登录</router-link>
             <router-link class="register" to="register">免费注册</router-link>
-
           </p>
         </div>
         <div class="typeList">
@@ -29,21 +28,13 @@
     <div class="bottom">
       <h1 class="logoArea">
         <router-link to="/home" class="logo" title="尚品汇">
-          <img src="./images/logo.png" alt="">
+          <img src="./images/logo.png" alt />
         </router-link>
-        
       </h1>
       <div class="searchArea">
         <form action="###" class="searchForm">
-          <input
-            type="text"
-            id="autocomplete"
-            class="input-error input-xxlarge"
-            v-model="keyword"
-          />
-          <button class="sui-btn btn-xlarge btn-danger" type="button" @click="toSearch">
-            搜索
-          </button>
+          <input type="text" id="autocomplete" class="input-error input-xxlarge" v-model="keyword" />
+          <button class="sui-btn btn-xlarge btn-danger" type="button" @click="toSearch">搜索</button>
         </form>
       </div>
     </div>
@@ -53,33 +44,44 @@
 <script>
 export default {
   name: "Header",
-  data(){
-    return{
+  data() {
+    return {
       //初始化输入的内容
-      keyword:''
-    }
+      keyword: "",
+    };
   },
-  methods:{
+  methods: {
     //去search组件的功能
-    toSearch(){
+    toSearch() {
       let location = {
         // path:'/search',
-        name:'search',
-        params:{
+        name: "search",
+        params: {
           //获取输入框输入的值
-          keyword:this.keyword 
+          keyword: this.keyword,
         },
-        query:{
-          keyword:this.keyword.toUpperCase()
-        }
-      }
-      if(this.$route.query){
-        location.query = this.$route.query
+        query: {
+          keyword: this.keyword.toUpperCase(),
+        },
+      };
+      if (this.$route.query) {
+        location.query = this.$route.query;
       }
       //收集好的路由对象放进router对象中
-      this.$router.push(location)
-    }
-  }
+      this.$router.push(location);
+      if (this.$route.path !== "/home") {
+        this.$router.replace(location);
+      } else {
+        this.$router.push(location);
+      }
+    },
+    clearKeyword() {
+      this.keyword = "";
+    },
+  },
+  mounted() {
+    this.$bus.$on("clearKeyword", this.clearKeyword);
+  },
 };
 </script>
 

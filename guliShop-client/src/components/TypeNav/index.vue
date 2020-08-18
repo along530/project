@@ -24,15 +24,19 @@
                 <div class="subitem">
                   <dl class="fore" v-for="c2 in c1.categoryChild" :key="c2.categoryId">
                     <dt>
-                      <a href="javascript:;"
-                          :data-categoryName="c2.categoryName"
-                          :data-category2Id="c2.categoryId">{{ c2.categoryName }}</a>
+                      <a
+                        href="javascript:;"
+                        :data-categoryName="c2.categoryName"
+                        :data-category2Id="c2.categoryId"
+                      >{{ c2.categoryName }}</a>
                     </dt>
                     <dd>
                       <em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
-                        <a href="javascript:;"
-                            :data-categoryName="c3.categoryName"
-                            :data-category3Id="c3.categoryId">{{ c3.categoryName }}</a>
+                        <a
+                          href="javascript:;"
+                          :data-categoryName="c3.categoryName"
+                          :data-category3Id="c3.categoryId"
+                        >{{ c3.categoryName }}</a>
                       </em>
                     </dd>
                   </dl>
@@ -54,7 +58,7 @@
         <a href="###">秒杀</a>
       </nav>
     </div>
-  </div>  
+  </div>
 </template>
 
 <script>
@@ -74,7 +78,7 @@ export default {
       this.isShow = false;
     }
   },
-  
+
   methods: {
     // getCategoryList() {
     //   this.$store.dispatch("getCategoryList");
@@ -124,22 +128,27 @@ export default {
         //如果没有就把location对象放到路由对象上
         this.$router.push(location);
       }
+      if (this.$route.path !== "/home") {
+        this.$router.replace(location);
+      } else {
+        this.$router.push(location);
+      }
     },
     //移入外部的div显示的三级分类列表
     moveInDiv() {
       //默认显示
       this.isShow = true;
     },
-      //移出外部的div首页的三级分类不会隐藏
-      moveOutDiv() {
-        //当前下标的项不显示
-        this.currentIndex = -1;
-        //判断路由对象的path是否等于首页
-        if (this.$route.path !== "/home") {
-          //让三级分类列表隐藏
-          this.isShow = false;
-        }
-      },
+    //移出外部的div首页的三级分类不会隐藏
+    moveOutDiv() {
+      //当前下标的项不显示
+      this.currentIndex = -1;
+      //判断路由对象的path是否等于首页
+      if (this.$route.path !== "/home") {
+        //让三级分类列表隐藏
+        this.isShow = false;
+      }
+    },
   },
   computed: {
     // ...mapState(['categoryList']) //错的  之前是对的

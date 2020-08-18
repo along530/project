@@ -33,15 +33,26 @@
         </div>
 
         <!--selector-->
-        <SearchSelector  @searchForTrademark="searchForTrademark"  @searchForAttrValue="searchForAttrValue"/>
+        <SearchSelector
+          @searchForTrademark="searchForTrademark"
+          @searchForAttrValue="searchForAttrValue"
+        />
 
         <!--details-->
         <div class="details clearfix">
           <div class="sui-navbar">
             <div class="navbar-inner filter">
               <ul class="sui-nav">
-                <li class="active">
-                  <a href="#">综合</a>
+                <li :class="{active:orderFlag === '1'}">
+                  <a href="javascript:;" @click="changeOrder('1')">
+                    综合
+                    <i
+                      class="iconfont"
+                      :class="{icondown:orderType === 'desc',iconup:orderType === 'asc'}"
+                      v-if="orderFlag === '1'"
+                      @click="changeOrder('1')"
+                    ></i>
+                  </a>
                 </li>
                 <li>
                   <a href="#">销量</a>
@@ -52,11 +63,16 @@
                 <li>
                   <a href="#">评价</a>
                 </li>
-                <li>
-                  <a href="#">价格⬆</a>
-                </li>
-                <li>
-                  <a href="#">价格⬇</a>
+                <li :class="{active:orderFlag === '2'}">
+                  <a href="javascript:;" @click="changeOrder('2')">
+                    价格
+                    <i
+                      class="iconfont"
+                      :class="{icondown:orderType === 'desc',iconup:orderType=== 'asc'}"
+                      v-if="orderFlag === '2'"
+                      @click="changeOrder('1')"
+                    ></i>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -242,52 +258,81 @@ export default {
       // this.getGoodsListInfo();
       //不能直接dispatch 因为它改不了路由当中的路径
       // this.$router.push({name:'search',params:this.$route.params})
-      this.$router.replace({name:'search',params:this.$route.params})
+      this.$router.replace({ name: "search", params: this.$route.params });
     },
     //删除面包屑当中的关键字请求参数
     removeKeyword() {
       this.searchParams.keyword = "";
       // this.getGoodsListInfo();
-      this.$router.replace({name:'search',query:this.$route.query})
+      this.$router.replace({ name: "search", query: this.$route.query });
+      this.$bus.$emit("clearKeyword"); //通知header组件把关键字清空
     },
 
     //使用自定义事件组件通信（子向父），达到根据品牌搜索
-    searchForTrademark(trademark){
+    searchForTrademark(trademark) {
       //回调函数再谁当中，谁就是接收数据的
-      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`
+      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`;
       this.getGoodsListInfo();
     },
     //删除面包屑当中的品牌参数
-    removeTrademark(){
-      this.searchParams.trademark = ""
+    removeTrademark() {
+      this.searchParams.trademark = "";
       this.getGoodsListInfo();
     },
-     //使用自定义事件组件通信（子向父），达到根据属性值搜索
-    searchForAttrValue(attr,attrValue){
+    //使用自定义事件组件通信（子向父），达到根据属性值搜索
+    searchForAttrValue(attr, attrValue) {
       //"属性ID:属性值:属性名"
       //要先去判断props当中是否已经存在这个点击的属性值条件，如果有了就不需要再去发请求
       // let isTrue = this.searchParams.props.some(item => item === `${attr.attrId}:${attrValue}:${attr.attrName}`)
       // if(isTrue) return
 
-      let num = this.searchParams.props.indexOf(`${attr.attrId}:${attrValue}:${attr.attrName}`)
-      if(num !== -1) return 
-      
-      this.searchParams.props.push(`${attr.attrId}:${attrValue}:${attr.attrName}`)
+      let num = this.searchParams.props.indexOf(
+        `${attr.attrId}:${attrValue}:${attr.attrName}`
+      );
+      if (num !== -1) return;
+
+      this.searchParams.props.push(
+        `${attr.attrId}:${attrValue}:${attr.attrName}`
+      );
       this.getGoodsListInfo();
     },
-    
-    removeProp(index){
-      //删除某一个下标的属性值
-      this.searchParams.props.splice(index,1)
-      this.getGoodsListInfo();
-    }
 
+    removeProp(index) {
+      //删除某一个下标的属性值
+      this.searchParams.props.splice(index, 1);
+      this.getGoodsListInfo();
+    },
   },
   computed: {
     ...mapGetters(["goodsList"]),
+    orderFlag(){
+      return this.searchParams.order.split(':')[0]
+    },
+    orderType(){
+      return this.searchParams.order.split(':')[1]
+    },
   },
   components: {
     SearchSelector,
+  },
+  //综合和价格排序切换规则
+  changeOrder(orderFlag) {
+    //接收1或者2
+    let originOrderFlag = thissearchParams.order.split(":")[0];
+    let originOrderType = thissearchParams.order.split(":")[1];
+    let newOrder = "";
+    if (orderFlag === originOrderFlag) {
+      //代表你点的还是原来排序的那个,我们只需要改变排序类型就可以了
+      newOrder = `${originOrderFlag}:${
+        originOrderType === "desc" ? "asc" : "desc"
+      }`;
+    } else {
+      //代表点击的不是原来排序的那个,那么我们需要去改变排序的标志,类型默认就行
+      newOrder = `${orderFlag}:desc`;
+    }
+    //把新的排序规则给了搜索参数,重新发请求
+    this.searchParams.order = newOrder;
+    this.getGoodsListInfo();
   },
 
   //解决search页输入搜索参数或者点击类别不会发请求的bug

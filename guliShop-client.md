@@ -2328,24 +2328,28 @@ class"with-x"/<i></i>
 **Header/index.vue**
 
 ```js
-if(this.$route.path !=='/home'){
-    this.$router.replace(location)
-}else{
-    this.$router.push(location)
-}
+ toSearch(){
+    if(this.$route.path !=='/home'){
+        this.$router.replace(location)
+    }else{
+        this.$router.push(location)
+    }
+ }
 ```
 
 **TypeNav/index.vue**
 
 ```js
-if(this.$route.path !=='/home'){
-    this.$router.replace(location)
-}else{
-    this.$router.push(location)
+toSearch(){
+    if(this.$route.path !=='/home'){
+        this.$router.replace(location)
+    }else{
+        this.$router.push(location)
+    }
 }
 ```
 
-**Search/indx.vue**
+**Search/index.vue**
 
 ```js
 removeCategoryName(){
@@ -2355,20 +2359,19 @@ removeCategoryName(){
 
 
 
-**点击搜索内容删除面包屑**
-
-
+**搜索框搜索 , 删除面包屑 , 同时删除输入框的内容**
 
 ```js
 **main.js**
 new Vue({
-    beforCreate(){
+    mounted(){
         Vue.prototype.$bus = this//配置全局事件总线
     },
 })
 
 Search/index.vue
-RemoveKeyword(){
+//删除面包屑当中的关键字请求参数
+removeKeyword(){
     this.$bus.$emit('clearKeyword')//通知header组件把关键字清空
 }
 
@@ -2390,6 +2393,7 @@ methods:{
 58、getters的用法简化searchSelector中数据的获取  mapGetters使用
 
 ```js
+**stroe/search.js**
 const getters = {
   attrsList(state){
     return state.goodsListInfo.attrsList || []
@@ -2455,7 +2459,7 @@ order:'1:desc',//排序的标志 , 1代表综合排序,2代表价格排序,排�
     
     //1.背景色谁有,看order的数据,排序的标志是谁,1代表综合排序,2代表价格排序
  
- Search/index.vue
+
 order:'2:desc',
 class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
     价格的li也设置:class="{active:searchParams.order.split(':')[0] === '2'}"
@@ -2483,7 +2487,7 @@ class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
               v-if="orderFlag === '1'"
             ></i>
           </a>
-        </li>
+    </li>
 
 		价格标签也设置
     <li :class="{active:orderFlag === '2'}">
@@ -2519,6 +2523,14 @@ methods:{
         this.searchParams.order = newOrder;
         this.getGoodsListInfo()
     }
+}
+computed:{
+    orderFlag(){
+      return this.searchParams.order.split(':')[0]
+    },
+    orderType(){
+      return this.searchParams.order.split(':')[1]
+    },
 }
 
 ```

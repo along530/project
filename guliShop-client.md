@@ -1939,6 +1939,8 @@ const actions = {
     }
   }
 }
+
+//getters的用法简化searchSelector中数据的获取  mapGetters使用
 const getters = {
   attrsList(state){
     return state.goodsListInfo.attrsList || []
@@ -1950,6 +1952,7 @@ const getters = {
     return state.goodsListInfo.trademarkList || []
   }
 }
+
 export default {
   state,
   mutations,
@@ -2315,8 +2318,7 @@ class"with-x"/<i></i>
 
 
 
-
-day06
+# day06
 
 57、解决在搜索页多次跳转后不能直接返回home的问题
 	查看之前书写的所有跳转路由
@@ -2353,10 +2355,57 @@ removeCategoryName(){
 
 
 
+**点击搜索内容删除面包屑**
+
+
+
+```js
+**main.js**
+new Vue({
+    beforCreate(){
+        Vue.prototype.$bus = this//配置全局事件总线
+    },
+})
+
+Search/index.vue
+RemoveKeyword(){
+    this.$bus.$emit('clearKeyword')//通知header组件把关键字清空
+}
+
+//路由组件是通过路由传参去做的
+//所有的事件,只要不销毁就得解绑
+Hearder/index.vue
+mounted(){
+    this.$bus.$on('clearKeyword',this.clearKeyword)
+}
+methods:{
+       clearKeyword(){
+      this.keyword = ''
+    },
+}
+```
+
+
+
 58、getters的用法简化searchSelector中数据的获取  mapGetters使用
 
+```js
+const getters = {
+  attrsList(state){
+    return state.goodsListInfo.attrsList || []
+  },
+  goodsList(state){
+    return state.goodsListInfo.goodsList || []
+  },
+  trademarkList(state){
+    return state.goodsListInfo.trademarkList || []
+  }
+}
+```
 
-59、响应式对象数据属性的添加和删除
+
+
+59、响应式对象数据属性的添加和删除 ( 讲的源码 )
 
 	对象当中的属性数据更改会导致页面更改，响应式数据
 	
@@ -2376,16 +2425,12 @@ removeCategoryName(){
 
 
 
-
-​	
 60、排序数据的分析4种情况   
 ​	orderFlag:orderType
 
-
-​	
-
 61、动态确定排序项和排序方式
 	
+
 	哪个排序项选中并且有背景色（根据数据中的orderFlag决定active的类名）
 
 
@@ -2398,15 +2443,110 @@ removeCategoryName(){
 	图标是向上还是向下（根据数据中的orderType决定）
 
 
-​	
 ​	点击切换排序包含排序项和排序方式
 ​		点击当前排序项         切换排序方式
 ​		点击不是当前排序项     切换排序项指定默认排序方式
 ​		点击排序项的时候传递自身的排序项标识数据  一个方法搞定
 
+```js
+Search/index.vue
+order:'1:desc',//排序的标志 , 1代表综合排序,2代表价格排序,排序的类型:'desc'降序,'asc'升序
+    //综合升序,综合降序,价格升序,价格降序,不影响做页面
+    
+    //1.背景色谁有,看order的数据,排序的标志是谁,1代表综合排序,2代表价格排序
+ 
+ Search/index.vue
+order:'2:desc',
+class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
+    价格的li也设置:class="{active:searchParams.order.split(':')[0] === '2'}"
+//2.图标的处理
+	1.用什么 https://www.iconfont.cn/找up和down字体图标
+          pubic/index.html
+        link引入图标地址,就是在线用图标
+			https://at.alicdn.com/t/font_2012379_mubm7liirxp.css
+		
+		图标-铅笔图标,icon/,删除/
+            Search/index.vue
+        价格标签,i标签
+			class="iconfont"
+            :class="{icondown:orderType === 'desc',iconup:orderType=== 'asc'}"
+             v-if="orderFlag === '2'"
+    2.图标在哪里显示
+    	和上面背景色一样的,谁有背景色才有图标
+		综合标签,
+   <li :class="{active:orderFlag === '1'}">
+          <a href="javascript:;" @click="changeOrder('1')">
+            综合
+            <i
+              class="iconfont"
+              :class="{icondown:orderType === 'desc',iconup:orderType === 'asc'}"
+              v-if="orderFlag === '1'"
+            ></i>
+          </a>
+        </li>
 
+		价格标签也设置
+    <li :class="{active:orderFlag === '2'}">
+              <a href="javascript:;" @click="changeOrder('2')">
+                价格
+                <i
+                  class="iconfont"
+                  :class="{icondown:orderType === 'desc',iconup:orderType=== 'asc'}"
+                  v-if="orderFlag === '2'"
+                ></i>
+              </a>
+    </li>
+    3.图标是向上还是向下
+//3.点击切换排序规则
+  综合标签,
+@click="changeOrder('1')"
+	价格标签
+ @click='changeOrder('2')'
+methods:{
+    //综合和价格排序切换规则
+    changeOrder(orderFlag){//接收1或者2
+        let originOrderFlag = thissearchParams.order.split(':')[0]
+        let originOrderType = thissearchParams.order.split(':')[1]
+        let newOrder = '';
+        if(orderFlag===originOrderFlag){
+            //代表你点的还是原来排序的那个,我们只需要改变排序类型就可以了
+            newOrder=`${originOrderFlag}:${originOrderType === 'desc'?'asc':'desc'}`
+        }else{
+            //代表点击的不是原来排序的那个,那么我们需要去改变排序的标志,类型默认就行
+            newOrder=`${orderFlag}:desc`
+        }
+        //把新的排序规则给了搜索参数,重新发请求
+        this.searchParams.order = newOrder;
+        this.getGoodsListInfo()
+    }
+}
+
+```
+
+ 
 
 62、模板内部的表达式优化计算属性值
+
+```js
+Search/index.vue
+computed:{
+        orderFlag() {
+      return this.searchParams.order.split(":")[0];
+    },
+    orderType() {
+      return this.searchParams.order.split(":")[1];
+    },
+}
+//设置综合标签,价格标签,优化
+
+changeOrder(){
+    //优化
+    let originOrderFlag = this.orderFlag;
+    let originOrderType = this.orderType;
+}
+//测试点击综合,价格
+```
+
 
 
 63、分页组件
@@ -2414,75 +2554,234 @@ removeCategoryName(){
 
 64、自定义通用的分页组件
 
-	1、去课件当中获取到分页的静态组件
-	2、注册组件并渲染静态组件
-	3、动态组件的逻辑和功能
-		3-1：思考设计 分页组件所需要的从父组件传递的数据是那些（1、当前页码  2、每页数量  3、总数  4、连续页数）  
-		3-2：思考设计 分页内部需要计算的数据：总页数  连续页码的起始和结束
-		3-3：在分页当中开始去计算逻辑
+```vue
+1、去课件当中获取到分页的静态组件
+class="fr page"不要
+components新建Pagination,新建index.vue
+前台PC文档-2.16.5-通用的分页组件
+直接放进来
 
+main.js
+引入pagination
+全局注册
+Vue.component('Pagination',Pagination)
 
-
-
-
-
-
-
-	实现静态组件（模板结构样式）
-		参考文档去获取
+pages/Search/index.vue
+使用Pagination标签
+ <!-- 从父组件给分页组件传递的数据 -->
+  <Pagination 
+  :currentPageNum="searchParams.pageNo"
+  :total="goodsListInfo.total"
+  :pageSize="searchParams.pageSize"
+  :continueSize="5"
+  @changePageNum="changePageNum"
+/>
+          
+父组件pages/Search/index.vue里面有个pageNo:1
+组件间通信传的东西能少则少
 	
-	设计数据
-		外部接受的
-			当前页码
-			每页数量
-			总数
-			连续页码数量   一般都是奇数个
+需要计算数据
+	1.总页数
+	2.连续页码起始页
 	
-		自己内部计算的
-			总页数
-			连续页码的起始和结束（比较恶心）
-	
-			1、先判断连续页码是不是比最大的页码还要大，如果是那么start=1  end就是最大页码
-			2、如果连续页码比最大页码小
-				我们让start  =   当前页码 - 连续页码/2 取整
-				      end   =    当前页码 + 连续页码/2 取整
-				
-				     如果start 求出来比1还小  那么start修正为1 end需要+修正的偏移量
-				     如果end   求出来比最大页码还大   同样end修正为最大页码   start - 修正的偏移量
+
+2、注册组件并渲染静态组件
+3、动态组件的逻辑和功能
+	3-1：思考设计 分页组件所需要的从父组件传递的数据是那些（1、当前页码  2、每页数量  3、总数  4、连续页数）  
+	3-2：思考设计 分页内部需要计算的数据：总页数  连续页码的起始和结束
+	3-3：在分页当中开始去计算逻辑
+```
 
 
-		动态显示页码
+
+
+
+
+```vue
+实现静态组件（模板结构样式）
+	参考文档去获取
+
+设计数据
+	外部接受的
+		当前页码
+		每页数量
+		总数
+		连续页码数量   一般都是奇数个
+
+	自己内部计算的
+		总页数
+		连续页码数的起始和结束（比较恶心）
+
+		1、先判断连续页码是不是比最大的页码还要大，如果是那么start=1  end就是最大页码
+		2、如果连续页码数比最大页码小
+			我们让start  =   当前页码 - 连续页码/2 取整
+			      end   =    当前页码 + 连续页码/2 取整
 			
-			每一个button都要考虑什么时候显示  还有什么时候是选中状态 
-	
-			什么时候显示和禁止操作
-				上一页：如果当前页等于1 禁止操作
-				第1页： 当start大于1才会显示  
-				。。。: 当start大于等于2
-				中间的连续页： v-for遍历  然后判断 如果大于等于start才会显示   
-				。。。: 当当前页小于总页数 - 1才会显示
-				最后一页：当end小于最后一页，才会显示 
-				下一页：如果当前页等于最后一页 禁止操作
-			什么时候选中状态
-				如果当前页和目前这个页码是一样的，那么就添加active类
+			     如果start 求出来比1还小  那么start修正为1 end需要+修正的偏移量
+			     如果end   求出来比最大页码还大   同样end修正为最大页码   start - 修正的偏移量
+			     **Search/index.vue**
+//从父组件给分页组件传递的数据
+<Pagination :currentPageNum = "searchParams.pageNo" 
+:total="goodsListInfo.total"
+:pageSize="searchParams.pageSize"
+:continueSize="3"
+/>
+    pageSize:2,
+        
+    computed:{
+        ...mapState({
+            goosListInfo:state=>state.search.goodsListInfo
+        })
+    }
+
+**Pagination/index.vue**
+props:{
+    currentPageNum:{
+        type:Number,
+        default:1
+    },
+        total:Number,
+        pageSize:{
+            type:Number,
+            default:5
+        }
+    	continueSize:Number
+},
+    computed:{
+        //计算总页码
+        totalPageNum(){
+            //向上取整
+            return Math.ceil(this.total/this.pageSize)
+        },
+            //连续页的起始和结束页码
+            startEnd(){
+                let start,end,disNum
+                let {currentPageNum,continueSize,totalPageNum} = this;
+                if(continueSize >= totalPageNum){
+                    start = 1;
+                    end = totalPageNum
+                }else{
+                    start = currentPageNum - Math.floor(continueSize/2)
+                    end = currentPageNum + Math.floor(continueSize/2)
+                    if(start <= 1){
+                        //dis代表要修正的值,修正左边出现的小于1的页码
+                        disNum = 1-start
+                        start += disNum
+                        end += disNum
+                    }
+                    if(end >= totalPageNum){
+                        //修正右边出现大于总页码的页码
+                        disNum = end - totalPageNum
+                        start -= disNum
+                        end -= disNum
+                    }
+                }
+                
+                return {start,end}
+            }
+    }
+<button>9</button> 
+<button :disabled="currentPageNum===1">上一页</button> 
+<button v-if="startEnd.start :class="active:currentPageNum === 1"> 1">1</button> 
+<button v-if="sartEnd.start > 2">.../button> 
+
+<button v-for="page in startEnd.end" :key="page" v-if="page >= startEnd.start" :class="{active:currentPageNum === page}">{{page}}</button> 
+
+<button v-if="startEnd.end < totalPageNum-1">...</button> 
+<button v-if="startEnd.end < totalPageNum" :class="active:currentPageNum === totalPageNum">{{totalPageNum}}</button> 
+<button :disabled="currentPageNum === totalPageNum>下一页</button> 
+
+
+```
+
+
+```vue
+	动态显示页码
+		
+		每一个button都要考虑什么时候显示  还有什么时候是选中状态 
+
+		什么时候显示和禁止操作
+			上一页：如果当前页等于1 禁止操作
+			第1页： 当start大于1才会显示  
+			。。。: 当start大于2
+			中间的连续页： v-for遍历  然后判断 如果大于等于start才会显示   
+			。。。: 当当前页小于总页数 - 1才会显示
+			最后一页：当end小于最后一页，才会显示 
+			下一页：如果当前页等于最后一页 禁止操作
+		什么时候选中状态
+			如果当前页和目前遍历的这个页码是一样的，那么就添加active类
+
+    **Pagination/index.vue**
+<button :disabled="currentPageNum===1" @click="$emit('changePageNum',currentPageNum - 1)">上一页</button> 
+<button v-if="startEnd.start :class="active:currentPageNum === 1"> 1">1</button> 
+<button v-if="sartEnd.start > 2">.../button> 
+
+<button v-for="page in startEnd.end" :key="page" v-if="page >= startEnd.start" :class="{active:currentPageNum === page}">{{page}}</button> 
+
+<button v-if="startEnd.end < totalPageNum-1">...</button> 
+<button v-if="startEnd.end < totalPageNum" :class="active:currentPageNum === totalPageNum">{{totalPageNum}}</button> 
+<button :disabled="currentPageNum === totalPageNum>下一页</button> 
+```
 
 
 ​			
-​		
-​		点击页码修改当前页码值
-​			每个都要考虑  第一页  上一页  中间的连续页  最后一页 下一页
 
 
-		更新页码父组件要去发请求
-			把自身改变页码传给父组件修改参数重新发送请求
+```vue
+点击页码修改当前页码值
+每个都要考虑  第一页  上一页  中间的连续页  最后一页 下一页	
+更新页码父组件要去发请求
+		把自身改变页码传给父组件修改参数重新发送请求
+    Search/index.vue
+<Pagination @changePageNum=""/>
+    
+methods:{
+    changePageNum(page){
+        this.searchParams.pageNo = page
+        this.getGoodsListInfo()
+    },
+    this.searchParams.pageNo=1//相关的都要加,目的是改变搜索条件之后都到第一页
+}
+```
 
 
-		父组件搜索条件更新，需要当前页码修改为1
-			分页也就从1开始了，因为它是父的页码传递过去的
+```js
+	父组件搜索条件更新，需要当前页码修改为1
+    分页也就从1开始了，因为它是父的页码传递过去的
+    **Search/index.vue**
+        
+     //删除面包屑当中的类名请求参数
+    removeCategoryName() {
+      this.searchParams.pageNo = 1
+    }
+    //删除面包屑当中的关键字请求参数
+    removeKeyword() {
+      this.searchParams.pageNo = 1
+      }
+	//使用自定义事件组件通信（子向父），达到根据品牌搜索
+       searchForTrademark(trademark) {
+      //回调函数在谁当中，谁就是接收数据的
+      this.searchParams.pageNo = 1
+      }
+    //删除面包屑当中的品牌参数
+    removeTrademark() {
+      this.searchParams.pageNo = 1
+    }
+	//使用自定义事件组件通信（子向父），达到根据属性值搜索
+    searchForAttrValue(attr, attrValue) {
+	this.searchParams.pageNo = 1
+    }
+	 removeProp(index) {
+      //删除某一个下标的属性值
+      this.searchParams.pageNo = 1
+     }
+	//综合和价格排序切换规则
+    changeOrder(orderFlag){
+        this.searchParams.pageNo = 1
+    }
+	
+```
 
-
-
-day07
 
 
 65、详情组件
@@ -2492,23 +2791,170 @@ day07
 	跳转过去后可能滚动条位置不对（参考router官网滚动配置） 
 		注意是给路由器配置的选项
 
+```js
+Detail文件放到pages里面
+router/routes.js
+引入Detail
+{
+    path:'/detail/:skuId',
+    component:Detail
+}
+
+Search/index.vue
+class="p-img"
+- <div class="p-img">
+    <router-link :to="`/detail/${goods.id}`">
+      <img :src="goods.defaultImg" />
+    </router-link>
+  </div>
+class="attr"里面的a标签不要了
+//测试搜索页能否到详情页
+
+Vue Router官网-滚动行为
+router/index.js
+const router = new VueRouter({
+   routes,
+  //控制跳转过去之后滚动位置在哪里
+  scrollBehavior (to, from, savedPosition) {
+    return { x: 0, y: 0 }
+  }
+})
+//router暴露出去
+查看到详情页是否在最上面
+```
 
 
 
 66、浏览器发送ajax请求，携带属性值如果是undefined不会发送，但是如果是“”是要发送的
-	如何优化，在发送请求前把空串的属性干掉，但是不能影响原来的内部属性
-
-
-
+	如何优化，在发送请求前把空串的属性干掉，但是不能影响原来的内部属性( 不写不会影响功能 )
 
 67、Detail组件动态显示
 	ajax请求函数
 	vuex管理	
 	获取数据
 	展示数据
-		商品数据  
-		放大镜大图和小图拿的是同一套  全部让父组件传递过去就好了（要处理假报错的问题）
-		
+		商品数据
+
+```js
+**api/index.js**
+export const reqGoodsDetailInfo=(skuId)=>{
+    return Ajax({
+        url:`/item/${skuId}`,
+        method:'get'
+    })
+}
+
+**store建detail.js**
+引入api
+const state={
+    goodsDetailInfo:{}
+}
+const mutations={
+ RECEIVEGOODSDETAILINFO(state,goodsDetailInfo){
+    state.goodsDetailInfo = goodsDetailInfo
+  }
+}
+const actions= {
+    async getGoodsDetailInfo({commit},skuId){
+    const result = await reqGoodsDetailInfo(skuId)
+    if(result.code === 200){
+      commit('RECEIVEGOODSDETAILINFO',result.data)
+    }
+  }
+}
+const getters = {
+    categoryView(state){
+    return state.goodsDetailInfo.categoryView || {}  
+    //为什么会加个或者{} 为了防止出现Undefined,后期使用点语法报错
+  },
+    skuInfo(state){
+    return state.goodsDetailInfo.skuInfo || {}
+  },
+    spuSaleAttrList(state){
+    return state.goodsDetailInfo.spuSaleAttrList || []
+  }
+}
+//平台属性让用户搜索的,销售属性是购物的
+
+**pages/Detail/index.vue**
+mounted(){
+    this.getGoodsDetailInfo()
+},
+methods:{
+	getGoodsDetailInfo(){
+        this.$store.dispatch("getGoodsDetailInfo",this.$route.params.skuId);
+    },
+    computed:{
+        ...mapGetters(["categoryView", "skuInfo", "spuSaleAttrList"]),
+    },
+    components:{
+        ImageList,
+        Zoom
+    }
+}
+//到search页看vuex-RECEIVEGOOSLIST-detail有没有数据
+
+clsaa="conPoin"加3个span
+<!-- 导航路径区域 -->
+      <div class="conPoin">
+        <span>{{categoryView.category1Name}}</span>
+        <span>{{categoryView.category2Name}}</span>
+        <span>{{categoryView.category3Name}}</span>
+</div>
+
+class="InfoName"
+<h3 class="InfoName">{{skuInfo.skuName}}</h3>
+
+class="news"
+<p class="news">{{skuInfo.skuDesc}}</p>
+
+class="price"
+<div class="price">
+  <i>¥</i>
+  <em>{{skuInfo.price}}</em>
+  <span>降价通知</span>
+</div>
+//选择区域
+class="choosedArea"
+<div class="chooseArea">
+      <div class="choosed"></div>
+      <dl v-for="(spuSaleAttr, index) in spuSaleAttrList" :key="spuSaleAttr.id">
+        <dt class="title">{{spuSaleAttr.saleAttrName}}</dt>
+       
+      </dl>
+</div>
+
+class="priceArea1"
+<div class="priceArea1">
+       <div class="title">价&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;格</div>
+        <div class="price">
+          <i>¥</i>
+          <em>{{skuInfo.price}}</em>
+          <span>降价通知</span>
+        </div>
+        <div class="remark">
+          <i>累计评价</i>
+          <em>65545</em>
+        </div>
+</div>
+
+dd留一个,遍历,class="active"
+ <dd
+          changepirce="0"
+          class="active"
+          v-for="(spuSaleAttrValue, index) in spuSaleAttr.spuSaleAttrValueList"
+          :key="spuSaleAttrValue.id"
+        >{{spuSaleAttrValue.saleAttrValueName}}
+</dd>
+看页面的销售属性是否是三个:选择颜色/版本/套装
+```
+
+
+
+
+​		放大镜大图和小图拿的是同一套  全部让父组件传递过去就好了（要处理假报错的问题）
+​		
+
 	交互
 		图片列表的点击切换样式
 		图片列表点击大图要跟着切换  组件通信index下标

@@ -4,6 +4,7 @@ Vue.use(Vuex);
 import user from "./user";
 import home from "./home";
 import search from './search'
+import detail from './detail'
 
 const state = {};
 const mutations = {};
@@ -17,6 +18,7 @@ export default new Vuex.Store({
   modules: {
     user,
     home,
-    search
+    search,
+    detail
   }, //合并小的store到大的store身上
 });

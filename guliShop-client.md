@@ -1,4 +1,4 @@
-# day01
+
 
 ## 01、脚手架创建项目
 
@@ -1809,7 +1809,7 @@ import "swiper/css/swiper.css";
 
 
 
-# day05	
+# day05 search搜索商品列表数据 
 
 46、实现search与searchSelector静态组件
 	searchSelector是search组件的一个子组件
@@ -2318,7 +2318,7 @@ class"with-x"/<i></i>
 
 
 
-# day06
+# day06 删除面包屑清空关键字 排序的图标 点击切换排序 自定义分页组件 详情页
 
 57、解决在搜索页多次跳转后不能直接返回home的问题
 	查看之前书写的所有跳转路由
@@ -2821,7 +2821,7 @@ Detail文件放到pages里面
 router/routes.js
 引入Detail
 {
-    path:'/detail/:skuId',
+    path:'/detail/:skuId',//params参数
     component:Detail
 }
 
@@ -2883,7 +2883,12 @@ export default {
   getters
 }
 
-
+src/store/index
+引入detail
+合并到大的store里面
+modules: {
+    detail
+  }, //合并小的store到大的store身上
 查看到详情页是否在最上面
 ```
 
@@ -3013,7 +3018,13 @@ dd留一个,遍历,class="active"
 看页面的销售属性是否是三个:选择颜色/版本/套装
 ```
 
-**8月19日 完成进度**
+```
+
+```
+
+
+
+**8月18日 完成进度**
 
 
 

@@ -3018,55 +3018,410 @@ dd留一个,遍历,class="active"
 看页面的销售属性是否是三个:选择颜色/版本/套装
 ```
 
-```
-
-```
-
 
 
 **8月18日 完成进度**
 
+# day07 放大镜  销售属性 购物车 订单详情
+
+## 点击小图同步上面的大图
+
+```js
+
+交互
+	图片列表的点击切换样式
+	图片列表点击大图要跟着切换  组件通信index下标Detail/index.vue
+computed:{
+   imgList(){
+      return this.skuInfo.skuImageList || []
+    }
+}
+<Zoom :imgList="imgList"/>
+<imageList :imgList="imgList"/>
+        
+Detail/imgeList/ImageList.vue
+export defalt{
+    props:['imgList'],
+        data(){
+        return{
+            defaultIndex:0//默认的下标,带橙色的框框
+        }
+    }
+}
+class='swiper-slide'
+- :src='img.imgUrl :class="
+<div class="swiper-slide" v-for="(img, index) in imgList" :key="img.id">
+        <img
+          :src="img.imgUrl"
+          :class="{active:index === defaultIndex}"
+          @click="changeDefaultIndex(index)"
+        />
+</div>
+&:hover 注释
+&.active{
+    border: 2px solid #f60;
+        padding: 1px;
+}
+//看小图是否显示,默认第一张是否有橙色框
+methods:{
+    changeDefaultIndex(index){
+        this.defaultIndex=index;
+        //看任意小图是否有橙色框
+    }
+}
+
+8.19上午进度
+
+Zoom/zoom.vue
+export defalut{
+    props:['imgList'],
+    data(){
+        return{
+            defaultIndex:0//为了一上来就显示第0张图片的url
+        }
+    },
+    computed:{
+        defaultImg(){
+            //动态数据尽量避免a.b.c
+            return this.imgList[this.defaultIndex] || {}
+        }
+    }
+}
+
+class="spec-preview"/img/src
+<div class="spec-preview">
+    <img :src="defaultImg.imgUrl" />
+    <div class="event"></div>
+    <div class="big">
+      <img :src="defaultImg.imgUrl" />
+    </div>
+    <div class="mask"></div>
+</div>
+现在点击可以切换,上面要同步切换,让index对应起来就可以了
 
 
-​		放大镜大图和小图拿的是同一套  全部让父组件传递过去就好了（要处理假报错的问题）
-​		
+**ImageList/ImageList.vue**
+methods:{
+    this.$bus.$emit('changeDefaultIndex", index')
+}
 
-	交互
-		图片列表的点击切换样式
-		图片列表点击大图要跟着切换  组件通信index下标
-		
-		放大镜
-			鼠标动  
-			遮罩动
-			求遮罩的位置
-			设置遮罩的位置
-			大图反向移动遮罩的位置2倍  
+**Zoom/zoom.vue**
+mounted(){
+    this.$bus.$on("changeDefaultIndex", this.changeDefaultIndex);
+}
+methods:{
+    changeDefaultIndex(index) {
+      this.defaultIndex = index;
+    },
+}
+ImageList/ImageList.vue会通知Zoom/zoom.vue里面的index
+//现在看点击小图是否同步上面的大图
 
 
-		商品售卖属性的点击切换（排它）
+```
+
+## 点击小图列表箭头换一组图片
+
+```js
+
+    
+	//现在处理点击imgList的箭头切换一组图片功能,看swiper文档,slides grid(网格分布)
+slidesPerGroup  slidesPerView
+SliderLoop里面的watch复制到ImageList.vue(万能代码)
+
+**ImageList/ImageList.vue**
+class"swiper-container"
+ <div class="swiper-container" ref="imgList">
+     
+watch: {
+    // bannerList(newVal,oldVal){
+    // }
+    imgList: {
+      immediate: true, //immediate立即的意思
+      //监视数据如果有了数据就去实例化swiper  但是
+      //监视有数据实例化的时候太快了,上面的结构也不一定形成（for）
+      // watch + nextTick
+      // nextTick 等待页面最近一次的更新完成，会调用它内部的回调函数
+      // Vue.nextTick    vm（Vue的实例或者组件对象，就是this）.$nextTick  两个方法你开心就好，效果一样的
+      handler(newVal, oldVal) {
+        this.$nextTick(() => {
+          new Swiper(this.$refs.imgList, {
+            slidesPerView : 5,
+            slidesPerGroup : 5,
+            // 如果需要前进后退按钮
+            navigation: {
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            },
+          });
+        });
+      },
+    },
+  },
+handler(){
+this.$nextTick(() => {
+      new Swiper(this.$refs.imgList, {
+        slidesPerView : 5,
+        slidesPerGroup : 5,
+        // 如果需要前进后退按钮
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+      });
+    });
+}
+
+```
+
+## 放大镜
+
+```js
+放大镜大图和小图拿的是同一套  全部让父组件传递过去就好了（要处理假报错的问题）
+放大镜
+    鼠标动  
+    遮罩动
+    求遮罩的位置
+    设置遮罩的位置
+    大图反向移动遮罩的位置2倍  
+    sku就是某个商品
+**Zoom/zoom.vue**
+  c="event" <div class="event" @mousemove="move"></div>  
+c="mask" <div class="mask" ref="mask"></div>
+c="big" <img :src="defaultImg.imgUrl" ref="bigImg"/>
+methods:{
+    move(event){
+        let bigImg = this.$refs.bigImg
+        let mask = this.$refs.mask
+        let mouseX = event.offsetX
+        let mouseY = event.offsetY
+        //拿到了鼠标位置
+        let maskX = mouseX-mask.offsetWidth / 2
+        let maskY = mouseY-mask.offsetWidth / 2
+        
+        //临界值
+        if(maskX < 0){
+            maskX = 0
+        }else if(maskX > mask.offsetWidth){
+            maskX = mask.offsetWidth
+        }
+        if(maskY < 0){
+            maskY = 0
+        }else if(maskY > mask.offsetHeight){
+            maskY = mask.offsetHeight
+        }
+        
+        mask.style.left = maskX + 'px'
+        mask.style.top = maskY + 'px'
+        bigImg.style.left = -2 * maskX + 'px'
+      bigImg.style.top = -2 * maskY + 'px'
+    }
+}
+****
+```
+
+## 商品销售属性
 
 
-​			
+```js
+Detail/index.vue
+商品售卖属性的点击切换（排它）
+	
+	c="active",当成js解析
+:class="{active:spuSaleAttrValue.isChecked === '1'}"
+	- dd添加点击事件
+@click="changeIsChecked(spuSaleAttr.spuSaleAttrValueList,spuSaleAttrValue)"
+	
+methods:{
+	changeIsChecked(attrValueList, attrValue){
+	//让列表当中所有的全部变白
+		attrValueList.forEach(item=>{
+		item.isChecked = "0";
+		})
+		//再让点击的变绿
+		attrValue.isChecked = "1";
+	}
+}
+
+//点击+ -的功能
+export default{
+    data(){
+    return {
+          skuNum: 1,
+        };
+    }
+
+}
+
+c="controls"/a
+input双向数据绑定
+v-model="skuNum"
++标签单击事件
+@click="skuNum++"
+-标签单击事件
+
+检查+ -按钮,看data/$route/skuNum数据
+```
+
 ​	
 
-68、添加购物车需要发送请求，跳转到添加购物车成功
+## 68、添加购物车需要发送请求，跳转到添加购物车成功
 
-	如何知道成功还是失败    
-		1、分发的时候传过去一个回调函数作为参数
-		2、使用promise 
-			async和await
-			async函数返回值是一个promise   而且这个promise的状态结果  由当前函数返回值决定
-			promise状态返回：
-				函数返回undefined       成功
-				函数正常返回值          成功
-				函数返回 成功的promise  成功
-				函数返回 失败的promise  失败
-				函数抛出错误            失败
-		
-	成功之后跳转路由到添加成功组件    需要带一个query参数  skuNum 
+```js
+点击加入购物车会在当前页发请求,请求成功,跳转加入成功页面
+代码/静态组件/添加购物车成功代码
+pages/建AddCartSuccess文件夹/建index.vue
 
+router/routes.js
+export default[
+   {
+    path:'/addcartsuccess',
+    component:AddCartSuccess
+  },
+]
+引入AddCartSuccess
+
+Detail/index.vue
+使用编程式路由,不能使用声明式导航,因为我们不是直接跳到添加成功页面的,而是要先在详情页发请求给后台,后台返回成功数据后,再手动调整到添加成功页面
+加入购物车标签,c="add"/a,单击事件
+<div class="add">
+               
+    <a href="javascript:;" @click="addShopCart">加入购物车</a>
+</div>
+methods:{
+    async addShopCart(){
+        //先发请求给后台添加购物车
+      //后台添加成功后返回结果
+		try{
+        //成功的结果
+        await this.$store.dispatch("addOrUpdateCart", {
+          skuId: this.skuInfo.id,
+          skuNum: this.skuNum,
+        });
+        //根据结果决定是否跳转到添加成功页面
+        alert("添加购物车成功，将自动跳转到成功页面");
+        this.$router.push("/addcartsuccess?skuNum=" + this.skuNum);
+        }catch{
+         //失败
+        alert(error.message);
+        }
+    }
+}
+
+api/index.js
+//请求添加购物车或者修改购物车
+//api文档看请求地址
+export const reqAddOrUpdateCart = (skuId,skuNum) => {
+    return Ajax({
+        url:`/cart/addToCart/${ skuId }/${ skuNum }`,
+        method:'post'
+    })
+}
+
+**store建shopcart.js**
+引入api里面的reqAddOrUpdateCart
+const actions = {
+  //异步发请求
+  async addOrUpdateCart({commit},{skuId,skuNum}){
+    const result = await reqAddOrUpdateCart(skuId,skuNum)
+    if(result.code === 200){
+      return 'ok'
+    }else{
+      return Promise.reject(new Error('failed'))
+    }
+  }
+}
+const mutations = {}
+const state = {}
+const getters = {}
+//暴露
+	state,
+    mutations,
+    actions,
+    getters
+/store/shopcart.js要引入
+
+Detail/index.vue
+try{
+    alert('添加购物车成功,将自动跳转成功页面')
+}
+
+
+//成功的页面也需要显示当前商品的详情,所以我们也得把商品的信息传递过去(存储方案:localStorage和sessionStorage)
+ sessionStorage.setItem('SKUINFO_KEY',JSON.stringify(this.skuInfo))
+//因为成功页面需要商品的数量,所以通过路由传参传递
+this.$router.push("/addcartsuccess?skuNum=" + this.skuNum)
+  看sessionStorage,很大的数据用存储方案,不要用路由传递
+//点击,添加购物车完成
+
+
+如何知道成功还是失败    
+	1、分发的时候传过去一个回调函数作为参数
+	2、使用promise 
+		async和await
+		async函数返回值是一个promise   而且这个promise的状态结果  由当前函数return的返回值决定
+		promise状态返回：
+			函数返回undefined       成功
+			函数正常返回值          成功
+			函数返回 成功的promise  成功
+			函数返回 失败的promise  失败
+			函数抛出错误            失败
+	
+成功之后跳转路由到添加成功组件    需要带一个query参数  skuNum 
+```
 
 ​	
+
+```js
+Addcarsuccess/index.vue
+export default{
+     data(){
+      return {
+        skuInfo: JSON.parse(sessionStorage.getItem('SKUINFO_KEY')) || {}
+      }
+    }
+}
+
+c=left-pic/img
+- <img :src="skuInfo.skuDefaultImg">
+c=right-info/p
+- <div class="right-info">
+    <p class="title">{{skuInfo.skuName}}</p>
+    <p class="attr">颜色：WFZ5099IH/5L钛金釜内胆 数量：{{$route.query.skuNum}}</p>
+  </div>
+
+public/css拿辉鸿老师的reset.css文件和iconfont.css
+
+//查看商品已成功加入购物车页面
+
+```
+
+## 点击去购物车结算
+
+```js
+Addcarsuccess/index.vue
+c=right-gocart
+ <div class="right-gocart">
+      <router-link class="sui-btn btn-xlarge" :to="`/detail/${skuInfo.id}`">查看商品详情</router-link>
+      <router-link to="/shopcart">去购物车结算</router-link>
+</div>
+//加入购物车页面,去购物车结算功能
+代码/静态组件/shopcart组件_静态 ,放到pages
+router/routes.js
+引入ShopCart
+export default[
+    {
+        path:'/ShopCart',
+        component:ShopCart
+    }
+]
+//点击去购物车结算
+```
+
+
+
+
+
 ​	添加成功组件需要用到商品信息所以跳转路由要保存商品信息  保存信息的多种方式（localStorage和sessionStorage）
 
 
@@ -3076,15 +3431,73 @@ dd留一个,遍历,class="active"
 
 day08
 
+## 69、购物车shopCart静态组件
 
-69、购物车shopCart静态组件
+```js
+调整css让各个项目对齐    删除第三项  
+width的百分比 
+cart-list-con1 %15  
+.cart-list-con2 %35  
+cart-list-con4 %10 
+cart-list-con5 %17 
+cart-list-con6 %10 
+cart-list-con7 %13
+ShopCart/index.vue
+c="cart-list-con3"这个类型的都删除
 
-	调整css让各个项目对齐    删除第三项   15  35  10 17 10 13
+```
 
 
-​	
-70、购物车组件动态展示
-​	请求数据
+
+```js
+api/index.js
+请求购物车列表数据
+export const reqShopCartList = () => {
+  return Ajax({
+    url:'/cart/cartList',
+    method:'get'
+  })
+}
+//对象写法
+//export const reqShopCartList=()=>Ajax.get('')
+```
+
+```js
+store/shopcart.js
+//引入reqShopCartList
+const state = {
+    shopCartList:[]
+}
+const mutations = {
+  RECEIVESHOPCARTLIST(state,shopCartList){
+    state.shopCartList = shopCartList
+  }
+}
+
+
+async getShopCartList({ commit }) {
+    const result = await reqShopCartList();
+    if (result.code === 200) {
+      commit("RECEIVESHOPCARTLIST", result.data);
+    }
+  },
+      
+export default {
+    mounted(){
+        this.getShopCartList()
+    },
+    methods:{
+        this.$store.dispatch('getShopCartList')
+    }
+//看vuex
+}
+```
+
+
+
+## 70、购物车组件动态展示
+```js
+	请求数据
 ​		展示：
 ​			数据是要去请求接口的
 ​			请求购物车列表数据
@@ -3097,16 +3510,82 @@ day08
 ​					浏览器端创建，每次请求都携带上，尽量不要修改
 ​					应用一打开就创建保存在localStorage
 ​					在state当中也去保存一份，这样的话为了更快
+使用
+				使用请求拦截器每个请求都带上
+					
+			做法：
+				书写工具函数去实现创建和保存uuid值
+				在state当中去调用这个函数
+				在ajax发送请求时候，所有请求头当中携带这个标识
 
-				使用
-					使用请求拦截器每个请求都带上
-						
-				做法：
-					书写工具函数去实现创建和保存uuid值
-					在state当中去调用这个函数
-					在ajax发送请求时候，所有请求头当中携带这个标识
-	
-			展示购物车数据（很多需要计算）
+		展示购物车数据（很多需要计算）
+		
+登录标识,注册标识
+带着标识,服务器根据标识创建一个表,全都放在这个表里
+需要一个东西创建唯一的标识,之前是用的Date.now()
+现在用uuid,上GitHub找
+
+store/user.js
+const state = {
+    //用户的临时身份标识,我们在state当中存一份
+    //为了以后获取的时候,效率更高一些
+    //用户的身份标识是要存储在永久保存的地方(localStorage),并且尽量不要更改
+    //先去从localStorage内部去取,有就用,没有就得创建,可以使用函数
+    userTempId: getUserTempId()
+}
+const mutations = {}
+const actions = {}
+const getters = {}
+
+
+```
+
+**src/建utils/建userabout.js**
+
+```js
+export function getUserTempId(){
+  let userTempId = localStorage.getItem('USERTEMPID_KEY')
+  if(!userTempId){
+    userTempId = uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+    localStorage.setItem('USERTEMPID_KEY',userTempId)
+  }
+  return userTempId
+}
+
+store/user.js
+引入userabout.js
+//vue调试工具看state数据
+
+ajax/Ajax.js
+引入store
+config =>{
+    let userTempId = store.state.user.userTempId
+    config.headers.userTempId = userTempId  
+}
+//看有没有带localstorage标识
+'Application'-'Local Storage'
+//找到同一个userTmpId,存储数据的时候都带上标识,再请求的时候带当时存的同一个标识,就会返回同一个数据
+//看vuex数据有没有返回
+
+pages/ShopCart/index.vue
+//引入vuex里面的mapState
+computed:{
+      ...mapState({
+        shopCartList: state => state.shopcart.shopCartList
+      })
+    }
+//到vue里面看数据
+
+c="cart-list" v-for="(cart, index) in shopCartList" :key="cart.id"
+
+c="cart-list-con2"/img 
+<img :src="cart.imgUrl">
+    
+c="cart-list-con2"
+
+c="cart-list-con6"/span
+<span class="sum">{{cart.skuPrice * cart.skuNum}}</span>
+```
 
 
 

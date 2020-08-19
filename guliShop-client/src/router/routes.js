@@ -3,9 +3,19 @@ import Search from "@/pages/Search";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Detail from "@/pages/Detail";
+import AddCartSuccess from '@/pages/AddCartSuccess'
+import ShopCart from '@/pages/ShopCart'
 
 export default [
   //专门配置各种路由的地方
+  {
+    path:'/ShopCart',
+    component:ShopCart
+  },
+  {
+    path:'/addcartsuccess',
+    component:AddCartSuccess
+  },
   {
     path: "/home",
     component: Home,

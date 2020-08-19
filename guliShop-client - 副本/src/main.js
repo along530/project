@@ -16,13 +16,24 @@ import '@/api' //为了测试用的
 
 import TypeNav from '@/components/TypeNav'
 import SliderLoop from '@/components/SliderLoop'
+import Pagination from '@/components/Pagination'
+
+
+
 //全局注册TypeNav  因为它是一个公用的组件
 Vue.component('TypeNav',TypeNav)
 Vue.component('SliderLoop',SliderLoop)
+Vue.component('Pagination',Pagination)
+
+
+
 
 Vue.config.productionTip = false
 
 new Vue({
+  beforeCreate() {
+    Vue.prototype.$bus = this //配置全局事件总线
+  },
   // el:'#app',
   router,   //注册注入给Vue添加路由功能并且让每个组件内部都有两个对象可以拿到 $router $route
   render:h => h(App),

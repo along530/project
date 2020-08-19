@@ -3022,7 +3022,7 @@ dd留一个,遍历,class="active"
 
 **8月18日 完成进度**
 
-# day07 放大镜  销售属性 购物车 订单详情
+# day07 0819放大镜  销售属性 购物车 订单详情
 
 ## 点击小图同步上面的大图
 
@@ -3049,7 +3049,6 @@ export defalt{
     }
 }
 class='swiper-slide'
-- :src='img.imgUrl :class="
 <div class="swiper-slide" v-for="(img, index) in imgList" :key="img.id">
         <img
           :src="img.imgUrl"
@@ -3106,14 +3105,15 @@ methods:{
 }
 
 **Zoom/zoom.vue**
-mounted(){
-    this.$bus.$on("changeDefaultIndex", this.changeDefaultIndex);
-}
 methods:{
     changeDefaultIndex(index) {
       this.defaultIndex = index;
     },
+},
+mounted(){
+    this.$bus.$on("changeDefaultIndex", this.changeDefaultIndex);
 }
+
 ImageList/ImageList.vue会通知Zoom/zoom.vue里面的index
 //现在看点击小图是否同步上面的大图
 
@@ -3158,19 +3158,6 @@ watch: {
       },
     },
   },
-handler(){
-this.$nextTick(() => {
-      new Swiper(this.$refs.imgList, {
-        slidesPerView : 5,
-        slidesPerGroup : 5,
-        // 如果需要前进后退按钮
-        navigation: {
-          nextEl: ".swiper-button-next",
-          prevEl: ".swiper-button-prev",
-        },
-      });
-    });
-}
 
 ```
 
@@ -3259,7 +3246,7 @@ v-model="skuNum"
 +标签单击事件
 @click="skuNum++"
 -标签单击事件
-
+@click="skuNum > 1? skuNum-- : skuNum = 1"
 检查+ -按钮,看data/$route/skuNum数据
 ```
 
@@ -3351,7 +3338,7 @@ try{
  sessionStorage.setItem('SKUINFO_KEY',JSON.stringify(this.skuInfo))
 //因为成功页面需要商品的数量,所以通过路由传参传递
 this.$router.push("/addcartsuccess?skuNum=" + this.skuNum)
-  看sessionStorage,很大的数据用存储方案,不要用路由传递
+  看sessionStorage数据,很大的数据用存储方案,不要用路由传递
 //点击,添加购物车完成
 
 
@@ -3370,7 +3357,7 @@ this.$router.push("/addcartsuccess?skuNum=" + this.skuNum)
 成功之后跳转路由到添加成功组件    需要带一个query参数  skuNum 
 ```
 
-​	
+## 添加购物车成功的页面
 
 ```js
 Addcarsuccess/index.vue
@@ -3407,6 +3394,7 @@ c=right-gocart
 </div>
 //加入购物车页面,去购物车结算功能
 代码/静态组件/shopcart组件_静态 ,放到pages
+
 router/routes.js
 引入ShopCart
 export default[

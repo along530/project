@@ -1,7 +1,7 @@
 <template>
   <div class="swiper-container" ref="banner">
     <div class="swiper-wrapper">
-      <div class="swiper-slide" v-for="(banner, index) in bannerList" :key="banner.id">
+      <div class="swiper-slide" v-for="banner in bannerList" :key="banner.id">
         <img :src="banner.imgUrl" />
       </div>
     </div>

@@ -475,7 +475,7 @@ module.exports = {
 <img src="E:\前端学习资料\0422前端\渊哥\视频\0812前台项目02\vuex模块化开发.png" alt="vuex模块化开发" style="zoom: 200%;" />
 
 ```js
-storehome.js
+store/home.js
 import {reqCategoryList} from '@/api'
 
 const state = {
@@ -519,7 +519,7 @@ export default {
 ```
 
 ```js
-user.js
+store/user.js
 //保存数据状态
 const state = {};
 //直接修改数据

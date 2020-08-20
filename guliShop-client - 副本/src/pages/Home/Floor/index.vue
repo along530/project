@@ -3,11 +3,11 @@
   <div class="floor">
     <div class="py-container">
       <div class="title clearfix">
-        <h3 class="fl">{{floor.name}}</h3>
+        <h3 class="fl">{{ floor.name }}</h3>
         <div class="fr">
           <ul class="nav-tabs clearfix">
-            <li class="active" v-for="(nav, index) in floor.navList" :key="nav.text">
-              <a href="#tab1" data-toggle="tab">{{nav.text}}</a>
+            <li class="active" v-for="nav in floor.navList" :key="nav.text">
+              <a href="#tab1" data-toggle="tab">热门</a>
             </li>
           </ul>
         </div>
@@ -17,16 +17,18 @@
           <div class="floor-1">
             <div class="blockgary">
               <ul class="jd-list">
-                <li v-for="(keyword, index) in floor.keywords" :key="index">{{keyword}}</li>
+                <li v-for="(keyword, index) in floor.keywords" :key="index">
+                  {{ keyword }}
+                </li>
               </ul>
               <img :src="floor.imgUrl" />
             </div>
             <div class="floorBanner">
-              <!-- <div class="swiper-container" ref="floor2Swiper">
+              <!-- <div class="swiper-container" id="floor2Swiper">
                 <div class="swiper-wrapper">
                   <div
                     class="swiper-slide"
-                    v-for="(carousel, index) in floor.carouselList"
+                    v-for="carousel in floor.carouselList"
                     :key="carousel.id"
                   >
                     <img :src="carousel.imgUrl" />
@@ -70,55 +72,55 @@
 </template>
 
 <script>
-// import Swiper from "swiper";
-// import "swiper/css/swiper.css";
+import Swiper from "swiper";
+import "swiper/css/swiper.css";
+
 export default {
   name: "Floor",
-  props: ["floor"], //声明接收属性
+  props: ["floor"],
   mounted() {
     //1、这里直接创建Swiper实例，是可以的
     // 因为我们floor当中 轮播图结构已经形成了
     // 因为我们的floor数据不需要请求获取，而是直接在创建floor组件的时候就已经有这个数据了
-    // new Swiper(this.$refs.floor2Swiper, {
-    //   // 如果需要分页器
-    //   pagination: {
-    //     el: ".swiper-pagination",
-    //   },
-    //   // 如果需要前进后退按钮
-    //   navigation: {
-    //     nextEl: ".swiper-button-next",
-    //     prevEl: ".swiper-button-prev",
-    //   },
-    // });
+    new Swiper(this.$refs.floor2Swiper, {
+      // 如果需要分页器
+      pagination: {
+        el: ".swiper-pagination",
+      },
+      // 如果需要前进后退按钮
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+    });
   },
 
-  // watch: {
+  watch: {
+    //   // floor(){
+    //   //   //只是一般监视可以简写  //深度监视必须使用麻烦写法
+    //   // },
 
-  //   // floor(){
-  //   //   //只是一般监视可以简写  //深度监视必须使用麻烦写法
-  //   // },
-
-  //   floor: {
-  //     //监视： 一般监视和深度监视
-  //     // deep:true, //配置深度监视
-  //     immediate:true, //immediate立即的意思
-  //     handler(newVal, oldVal) {
-  //       this.$nextTick(() => {
-  //         new Swiper(this.$refs.floor2Swiper, {
-  //           // 如果需要分页器
-  //           pagination: {
-  //             el: ".swiper-pagination",
-  //           },
-  //           // 如果需要前进后退按钮
-  //           navigation: {
-  //             nextEl: ".swiper-button-next",
-  //             prevEl: ".swiper-button-prev",
-  //           },
-  //         });
-  //       });
-  //     },
-  //   },
-  // },
+    floor: {
+      //监视： 一般监视和深度监视
+      // deep:true, //配置深度监视
+      immediate: true, //immediate立即的意思
+      handler(newVal, oldVal) {
+        this.$nextTick(() => {
+          new Swiper(this.$refs.floor2Swiper, {
+            // 如果需要分页器
+            pagination: {
+              el: ".swiper-pagination",
+            },
+            // 如果需要前进后退按钮
+            navigation: {
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            },
+          });
+        });
+      },
+    },
+  },
 };
 </script>
 

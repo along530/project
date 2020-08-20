@@ -4,7 +4,7 @@
       <div class="swiper-slide" v-for="(img, index) in imgList" :key="img.id">
         <img
           :src="img.imgUrl"
-          :class="{ active: index === defaultIndex }"
+          :class="{active:index === defaultIndex}"
           @click="changeDefaultIndex(index)"
         />
       </div>
@@ -24,15 +24,12 @@ export default {
       defaultIndex: 0, //默认的下标,带橙色的框框
     };
   },
-  //看小图是否显示,默认第一张是否有橙色框
   methods: {
     changeDefaultIndex(index) {
       this.defaultIndex = index;
       //看任意小图是否有橙色框
       this.$bus.$emit("changeDefaultIndex", index);
-
     },
-    
   },
   watch: {
     // bannerList(newVal,oldVal){
@@ -58,7 +55,20 @@ export default {
         });
       },
     },
-  },  
+  },
+  handler() {
+    this.$nextTick(() => {
+      new Swiper(this.$refs.imgList, {
+        slidesPerView: 5,
+        slidesPerGroup: 5,
+        // 如果需要前进后退按钮
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+      });
+    });
+  },
 };
 </script>
 

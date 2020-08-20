@@ -8,10 +8,8 @@
           <p>尚品汇欢迎您！</p>
           <p>
             <span>请</span>
-            <router-link to="/login">登录</router-link>
-            <!-- <a href="###"></a> -->
-            <router-link to="/register" class="register">免费注册</router-link>
-            <!-- <a href="###" ></a> -->
+            <router-link to="login">登录</router-link>
+            <router-link class="register" to="register">免费注册</router-link>
           </p>
         </div>
         <div class="typeList">
@@ -32,13 +30,10 @@
         <router-link to="/home" class="logo" title="尚品汇">
           <img src="./images/logo.png" alt />
         </router-link>
-        <!-- <a   href="###" target="_blank">
-          
-        </a> -->
       </h1>
       <div class="searchArea">
         <form action="###" class="searchForm">
-          <input type="text" id="autocomplete" class="input-error input-xxlarge" v-model="keyword"/>
+          <input type="text" id="autocomplete" class="input-error input-xxlarge" v-model="keyword" />
           <button class="sui-btn btn-xlarge btn-danger" type="button" @click="toSearch">搜索</button>
         </form>
       </div>
@@ -49,59 +44,44 @@
 <script>
 export default {
   name: "Header",
-  data(){
+  data() {
     return {
-      keyword:''
-    }
+      //初始化输入的内容
+      keyword: "",
+    };
   },
-  mounted(){
-    this.$bus.$on('clearKeyword',this.clearKeyword)
-  },
-  methods:{
-    clearKeyword(){
-      this.keyword = ''
-    },
-    
-    toSearch(){
+  methods: {
+    //去search组件的功能
+    toSearch() {
       let location = {
-        //1、对象写法
-        //当传递参数传递有params参数的时候，对象写法必须是name和params去组合
-        //当传递参数有query的时候无所谓
-
-        //2、怎么制定params参数可传可不传
-        // 在路由路径当中获取params参数的时候加?
-
-        //3、传递的params参数如果是空串，路径也会出问题
-        // 要么不指定params参数   要么传递过去一个undefined 代表什么都没传，不能直接传空串
-        // 前提得  params参数可传可不传
-
         // path:'/search',
-        name:'search',
-        params:{
-          keyword:this.keyword || undefined
+        name: "search",
+        params: {
+          //获取输入框输入的值
+          keyword: this.keyword,
         },
-        // query:{
-        //   keyword:this.keyword.toUpperCase()
-        // }
+        query: {
+          keyword: this.keyword.toUpperCase(),
+        },
+      };
+      if (this.$route.query) {
+        location.query = this.$route.query;
       }
-
-
-      //点击搜索的时候应该去看看以前有没有query参数 （路由当中有没有）
-      if(this.$route.query){
-        location.query = this.$route.query
+      //收集好的路由对象放进router对象中
+      this.$router.push(location);
+      if (this.$route.path !== "/home") {
+        this.$router.replace(location);
+      } else {
+        this.$router.push(location);
       }
-
-      if(this.$route.path !== '/home'){
-        this.$router.replace(location) //对象
-      }else{
-        this.$router.push(location) //对象
-      }
-      
-      // this.$router.push('/search') //字符串 
-      // this.$router.push(location) //对象
-      //路由传递参数
-    }
-  }
+    },
+    clearKeyword() {
+      this.keyword = "";
+    },
+  },
+  mounted() {
+    this.$bus.$on("clearKeyword", this.clearKeyword);
+  },
 };
 </script>
 

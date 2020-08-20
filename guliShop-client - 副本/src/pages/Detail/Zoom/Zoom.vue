@@ -24,6 +24,9 @@ export default {
       return this.imgList[this.defaultIndex] || {};
     },
   },
+  mounted() {
+    this.$bus.$on("changeDefaultIndex", this.changeDefaultIndex);
+  },
   methods: {
     changeDefaultIndex(index) {
       this.defaultIndex = index;
@@ -35,7 +38,7 @@ export default {
       let mouseY = event.offsetY;
       //拿到了鼠标位置
       let maskX = mouseX - mask.offsetWidth / 2;
-      let maskY = mouseY - mask.offsetWidth / 2;
+      let maskY = mouseY - mask.offsetHeight / 2;
 
       //临界值
       if (maskX < 0) {
@@ -51,12 +54,9 @@ export default {
 
       mask.style.left = maskX + "px";
       mask.style.top = maskY + "px";
-      bigImg.style.left = -2 * maskX + "px";
-      bigImg.style.top = -2 * maskY + "px";
+      bigImg.style.left = -2 * maskX + 'px'
+      bigImg.style.top = -2 * maskY + 'px'
     },
-  },
-  mounted() {
-    this.$bus.$on("changeDefaultIndex", this.changeDefaultIndex);
   },
 };
 </script>

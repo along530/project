@@ -1,7 +1,11 @@
 <template>
   <div class="swiper-container" ref="banner">
     <div class="swiper-wrapper">
-      <div class="swiper-slide" v-for="banner in bannerList" :key="banner.id">
+      <div
+        class="swiper-slide"
+        v-for="banner in bannerList"
+        :key="banner.id"
+      >
         <img :src="banner.imgUrl" />
       </div>
     </div>
@@ -19,7 +23,7 @@ import Swiper from "swiper";
 import "swiper/css/swiper.css";
 export default {
   name: "",
-  props:['bannerList'],
+  props: ["bannerList"],
   watch: {
     // bannerList(newVal,oldVal){
 
@@ -52,5 +56,4 @@ export default {
 };
 </script>
 
-<style lang="less" scoped>
-</style>
+<style scoped></style>

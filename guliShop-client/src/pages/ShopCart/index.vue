@@ -11,14 +11,17 @@
         <div class="cart-th6">操作</div>
       </div>
       <div class="cart-body">
-        <ul class="cart-list"
-        v-for="(cart, index) in shopCartList" :key="cart.id"
-        >
+        <ul class="cart-list" v-for="(cart, index) in shopCartList" :key="cart.id">
           <li class="cart-list-con1">
-            <input type="checkbox" name="chk_list" />
+            <input
+              type="checkbox"
+              name="chk_list"
+              :checked="cart.isChecked === 1"
+              @click="updateOne(cart)"
+            />
           </li>
           <li class="cart-list-con2">
-            <img :src="cart.imgUrl">
+            <img :src="cart.imgUrl" />
             <div class="item-msg">{{cart.skuName}}</div>
           </li>
 
@@ -26,9 +29,16 @@
             <span class="price">399.00</span>
           </li>
           <li class="cart-list-con5">
-            <a href="javascript:void(0)" class="mins">-</a>
-            <input autocomplete="off" type="text" value="1" minnum="1" class="itxt" />
-            <a href="javascript:void(0)" class="plus">+</a>
+            <a href="javascript:void(0)" class="mins" @click="updateCartNum(cart,-1)">-</a>
+            <input
+              autocomplete="off"
+              type="text"
+              :value="cart.skuNum"
+              minnum="1"
+              class="itxt"
+              @change="updateCartNum(cart,$event.target.value*1)"
+            />
+            <a href="javascript:void(0)" class="plus" @click="updateCartNum(cart,1)">+</a>
           </li>
           <li class="cart-list-con6">
             <span class="sum">{{cart.skuPrice * cart.skuNum}}</span>
@@ -39,12 +49,11 @@
             <a href="#none">移到收藏</a>
           </li>
         </ul>
-
       </div>
     </div>
     <div class="cart-tool">
       <div class="select-all">
-        <input class="chooseAll" type="checkbox" />
+        <input class="chooseAll" type="checkbox" v-model="isCheckAll" />
         <span>全选</span>
       </div>
       <div class="option">
@@ -55,11 +64,11 @@
       <div class="money-box">
         <div class="chosed">
           已选择
-          <span>0</span>件商品
+          <span>{{checkNum}}</span>件商品
         </div>
         <div class="sumprice">
           <em>总价（不含运费） ：</em>
-          <i class="summoney">0</i>
+          <i class="summoney">{{allMoney}}</i>
         </div>
         <div class="sumbtn">
           <a class="sum-btn" href="###" target="_blank">结算</a>
@@ -70,21 +79,86 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import { mapState } from "vuex";
 export default {
   name: "ShopCart",
-  mounted(){
-      this.getShopCartList()
+  mounted() {
+    this.getShopCartList();
+  },
+  methods: {
+    getShopCartList() {
+      this.$store.dispatch("getShopCartList");
     },
-    methods:{
-      getShopCartList(){
-        this.$store.dispatch('getShopCartList')
+    async updateCartNum(cart, disNum) {
+      //校正数量,disNUm是想改变的量
+      if (cart.skuNum + disNum < 1) {
+        disNum = 1 - cart.skuNum; //disNum和原来的数量加起来最少得是1,如果小于1得对disNum修正
+      }
+
+      //发请求去处理数量，返回成功后重新请求列表数据，就会看到最新的数据
+      try {
+        await this.$store.dispatch("addOrUpdateCart", {
+          skuId: cart.skuId,
+          skuNum: disNum,
+          //vue调试查看skuId
+        });
+        this.getShopCartList();
+      } catch (error) {
+        alert(error.message);
       }
     },
+    async updateOne(cart) {
+      //发请求
+      try {
+        await this.$store.dispatch("updateIsCheck", {
+          skuId: cart.skuId,
+          isChecked: cart.isChecked === 1 ? 0 : 1,
+        });
+        //结果成功去重新请求列表页数据
+        this.getShopCartList();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+  },
   computed: {
     ...mapState({
-      shopCartList: state => state.shopcart.shopCartList,
+      shopCartList: (state) => state.shopcart.shopCartList,
+      
     }),
+    isCheckAll: {
+      get() {
+        return this.shopCartList.every((item) => item.isChecked === 1); //现在全选框是否打√
+      },
+      async set(val) {
+        //最新值,要修改所有的状态,val对应的状态,val如果是true就对应1,因为isCHecked只认识数字,如果是false就对应0,默认传的是布尔值
+        try {
+          const result = await this.$store.dispatch('updateAllIsCheck',val?1:0)
+          console.log(result)
+          this.getShopCartList()
+        } catch (error) {
+          alert(error.message)
+        }
+      },
+    },
+    checkNum() {
+      //统计选择的数量,每次拿的都是前一个pre
+      return this.shopCartList.reduce((pre, item) => {
+        if (item.isChecked === 1) {
+          pre += item.skuNum;
+        }
+        return pre;
+      }, 0);
+    },
+    //统计总价
+    allMoney() {
+      return this.shopCartList.reduce((pre, item) => {
+        if (item.isChecked === 1) {
+          pre += item.skuNum * item.skuPrice;
+        }
+        return pre;
+      }, 0);
+    },
   },
 };
 </script>

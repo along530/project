@@ -43,13 +43,14 @@ export default {
   computed: {
     //1、计算总页码
     totalPageNum() {
+        //向上取整
       return Math.ceil(this.total / this.pageSize);
     },
     //2、连续页的起始和结束页码
     startEnd() {
       let start, end, disNum;
       let { currentPageNum, continueSize, totalPageNum } = this;
-
+        //如果连续页码数大于等于总页码数
       if (continueSize >= totalPageNum) {
         start = 1;
         end = totalPageNum;

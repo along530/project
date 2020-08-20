@@ -55,3 +55,10 @@ export const reqShopCartList = () => {
     method:'get'
   })
 }
+
+export const reqUpdateIsCheck = (skuId,isChecked) => {
+  return Ajax({
+      url:`/cart/checkCart/${skuId}/${isChecked}`,
+      method:'get'
+  })
+}

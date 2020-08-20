@@ -12,21 +12,29 @@
           </ul>
           <ul class="fl sui-tag">
             <li class="with-x" v-show="searchParams.categoryName">
-              {{searchParams.categoryName}}
+              {{ searchParams.categoryName }}
               <i @click="removeCategoryName">×</i>
             </li>
             <li class="with-x" v-show="searchParams.keyword">
-              {{searchParams.keyword}}
+              {{ searchParams.keyword }}
               <i @click="removeKeyword">×</i>
             </li>
             <li class="with-x" v-show="searchParams.trademark">
-              {{(searchParams.trademark ? searchParams.trademark : '').split(':')[1]}}
+              {{
+                (searchParams.trademark ? searchParams.trademark : "").split(
+                  ":"
+                )[1]
+              }}
               <!-- {{searchParams.trademark.split(':')[1]}}  -->
               <i @click="removeTrademark">×</i>
             </li>
 
-            <li class="with-x" v-for="(prop, index) in searchParams.props" :key="index">
-              {{prop.split(':')[1]}}
+            <li
+              class="with-x"
+              v-for="(prop, index) in searchParams.props"
+              :key="index"
+            >
+              {{ prop.split(":")[1] }}
               <i @click="removeProp(index)">×</i>
             </li>
           </ul>
@@ -53,12 +61,15 @@
 
                 //3、点击切换排序规则
                 -->
-                <li :class="{active:orderFlag === '1'}" >
+                <li :class="{ active: orderFlag === '1' }">
                   <a href="javascript:;" @click="changeOrder('1')">
                     综合
                     <i
                       class="iconfont"
-                      :class="{icondown:orderType === 'desc',iconup:orderType === 'asc'}"
+                      :class="{
+                        icondown: orderType === 'desc',
+                        iconup: orderType === 'asc',
+                      }"
                       v-if="orderFlag === '1'"
                     ></i>
                   </a>
@@ -72,12 +83,15 @@
                 <li>
                   <a href="#">评价</a>
                 </li>
-                <li :class="{active:orderFlag === '2'}">
+                <li :class="{ active: orderFlag === '2' }">
                   <a href="javascript:;" @click="changeOrder('2')">
                     价格
                     <i
                       class="iconfont"
-                      :class="{icondown:orderType === 'desc',iconup:orderType=== 'asc'}"
+                      :class="{
+                        icondown: orderType === 'desc',
+                        iconup: orderType === 'asc',
+                      }"
                       v-if="orderFlag === '2'"
                     ></i>
                   </a>
@@ -87,7 +101,11 @@
           </div>
           <div class="goods-list">
             <ul class="yui3-g">
-              <li class="yui3-u-1-5" v-for="(goods, index) in goodsList" :key="goods.id">
+              <li
+                class="yui3-u-1-5"
+                v-for="(goods, index) in goodsList"
+                :key="goods.id"
+              >
                 <div class="list-wrap">
                   <div class="p-img">
                     <router-link :to="`/detail/${goods.id}`">
@@ -97,12 +115,12 @@
                   <div class="price">
                     <strong>
                       <em>¥</em>
-                      <i>{{goods.price}}</i>
+                      <i>{{ goods.price }}</i>
                     </strong>
                   </div>
                   <div class="attr">
                     <router-link :to="`/detail/${goods.id}`">
-                      {{goods.title}}
+                      {{ goods.title }}
                     </router-link>
                   </div>
                   <div class="commit">
@@ -116,20 +134,23 @@
                       href="success-cart.html"
                       target="_blank"
                       class="sui-btn btn-bordered btn-danger"
-                    >加入购物车</a>
-                    <a href="javascript:void(0);" class="sui-btn btn-bordered">收藏</a>
+                      >加入购物车</a
+                    >
+                    <a href="javascript:void(0);" class="sui-btn btn-bordered"
+                      >收藏</a
+                    >
                   </div>
                 </div>
               </li>
             </ul>
           </div>
           <!-- 从父组件给分页组件传递的数据 -->
-          <Pagination 
-          :currentPageNum="searchParams.pageNo"
-          :total="goodsListInfo.total"
-          :pageSize="searchParams.pageSize"
-          :continueSize="5"
-          @changePageNum="changePageNum"
+          <Pagination
+            :currentPageNum="searchParams.pageNo"
+            :total="goodsListInfo.total"
+            :pageSize="searchParams.pageSize"
+            :continueSize="5"
+            @changePageNum="changePageNum"
           />
         </div>
       </div>
@@ -236,7 +257,7 @@ export default {
     },
     //删除面包屑当中的类名请求参数
     removeCategoryName() {
-      this.searchParams.pageNo = 1
+      this.searchParams.pageNo = 1;
       this.searchParams.categoryName = "";
       // this.getGoodsListInfo();
       //不能直接dispatch 因为它改不了路由当中的路径
@@ -245,7 +266,7 @@ export default {
     },
     //删除面包屑当中的关键字请求参数
     removeKeyword() {
-      this.searchParams.pageNo = 1
+      this.searchParams.pageNo = 1;
 
       this.$bus.$emit("clearKeyword"); //通知header组件把关键字清空
 
@@ -257,14 +278,14 @@ export default {
     //使用自定义事件组件通信（子向父），达到根据品牌搜索
     searchForTrademark(trademark) {
       //回调函数再谁当中，谁就是接收数据的
-      this.searchParams.pageNo = 1
+      this.searchParams.pageNo = 1;
 
       this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`;
       this.getGoodsListInfo();
     },
     //删除面包屑当中的品牌参数
     removeTrademark() {
-      this.searchParams.pageNo = 1
+      this.searchParams.pageNo = 1;
       this.searchParams.trademark = "";
       this.getGoodsListInfo();
     },
@@ -280,7 +301,7 @@ export default {
       );
       if (num !== -1) return;
 
-      this.searchParams.pageNo = 1
+      this.searchParams.pageNo = 1;
 
       this.searchParams.props.push(
         `${attr.attrId}:${attrValue}:${attr.attrName}`
@@ -290,51 +311,50 @@ export default {
 
     removeProp(index) {
       //删除某一个下标的属性值
-      this.searchParams.pageNo = 1
+      this.searchParams.pageNo = 1;
       this.searchParams.props.splice(index, 1);
       this.getGoodsListInfo();
     },
     //综合和价格排序切换规则
-    changeOrder(orderFlag){
+    changeOrder(orderFlag) {
       // let originOrderFlag = this.searchParams.order.split(':')[0]
       //优化后
-      let originOrderFlag = this.orderFlag
+      let originOrderFlag = this.orderFlag;
       // let originOrderType = this.searchParams.order.split(':')[1]
-      let originOrderType = this.orderType
-      let newOrder = ''
-      if(orderFlag === originOrderFlag){
+      let originOrderType = this.orderType;
+      let newOrder = "";
+      if (orderFlag === originOrderFlag) {
         //代表点的还是原来排序的那个，那么我们只需要改变排序类型就完了
-        newOrder = `${originOrderFlag}:${originOrderType === 'desc'? 'asc' : 'desc'}`
-      }else{
+        newOrder = `${originOrderFlag}:${
+          originOrderType === "desc" ? "asc" : "desc"
+        }`;
+      } else {
         //代表点击的不是原来排序的那个，那么我们需要去改变排序的标志，类型默认就行
-        newOrder = `${orderFlag}:desc`
+        newOrder = `${orderFlag}:desc`;
       }
 
       //把新的排序规则给了搜索参数，重新发请求
-      this.searchParams.pageNo = 1
-      this.searchParams.order = newOrder
-      this.getGoodsListInfo()
+      this.searchParams.pageNo = 1;
+      this.searchParams.order = newOrder;
+      this.getGoodsListInfo();
     },
 
-    changePageNum(page){
-      this.searchParams.pageNo = page
-      this.getGoodsListInfo()
-    }
-
-
+    changePageNum(page) {
+      this.searchParams.pageNo = page;
+      this.getGoodsListInfo();
+    },
   },
   computed: {
     ...mapState({
-      goodsListInfo:state => state.search.goodsListInfo
+      goodsListInfo: (state) => state.search.goodsListInfo,
     }),
     ...mapGetters(["goodsList"]),
-    orderFlag(){
-      return this.searchParams.order.split(':')[0]
+    orderFlag() {
+      return this.searchParams.order.split(":")[0];
     },
-    orderType(){
-      return this.searchParams.order.split(':')[1]
+    orderType() {
+      return this.searchParams.order.split(":")[1];
     },
-    
   },
   components: {
     SearchSelector,

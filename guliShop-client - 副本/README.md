@@ -1,4 +1,4 @@
-# gulishop-client
+# client
 
 ## Project setup
 ```

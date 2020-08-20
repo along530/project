@@ -3575,63 +3575,557 @@ c="cart-list-con6"/span
 <span class="sum">{{cart.skuPrice * cart.skuNum}}</span>
 ```
 
+## 总结
+
+避免a.b.c , 所以每一个都要判断 , return this.a[b] || []
+
+this.$bus.$emit('事件名' , 事件) ,事件绑定在$bus , 回调函数留在Zoom里面 ,用来接收数据的
+
+data里面和computed里面的都是响应式数据 , 所以data变了 , computed也会变
+
+放大镜 
+
+- 先算出鼠标位置
+
+- 鼠标的位置 - 蒙板宽度的一半
+- 临界值是优化部分 , 不算代码逻辑
+
+async是异步 , 函数返回值是promise , sync是同步 , 成功或失败看函数的return , 如果return是正常值 
+
+- 返回的就是成功的 , return成功的promise , 
+- 返回的就是成功的promise , 如果抛出的错误 , 返回的就是抛出的错误 
+
+**加入购物车**
+
+- 不能用声明式导航 , 因为不是立即跳转 , 所以用编程式
+
+- 大的逻辑 : 
+
+  - 发请求
+
+    - api接口 ( params 真正配置的不是params , 配置的是query参数)
+
+    - ```
+      export const reqShopCartList = () => {
+        return Ajax({
+          url:'/cart/cartList',
+          method:'get'
+        })
+      }
+      ```
+
+  - store
+
+  - context就是解构commit里面的东西
+
+  - 拿返回的结果
+
+  - async返回的永远都不会是失败的promise
+
+  - 只要是await 就放在try catch里面 , 用来捕获成功和失败的
+
+  - 商品的信息存储在临时的sessionStorage里面
+
+  - 空的sessionStorage和localStorage拿东西返回的是null
+
+  - 包装类型
+
+    - 包装类型是特殊的引用类型。每当读取一个基本类型值的时候，后台就会创建一个对应的基本包装类型的对象，从而可能调用一些方法来操作这些数据。包装类型共包括Boolean、Number和String三种
+
+# day09 0820
+
+## 单选 多选 全选 统计数量 统计价格
+
+```js
+	交互：
+		更新购物车数量数据
+
+		更新购物车选中状态数据
+	ShopCart/index.vue
+	isChecked是1就要打√
+	c="cart-list-con1"
+		<li class="cart-list-con1">
+            <input type="checkbox" name="chk_list" :checked="cart.isChecked === 1" />
+          </li>
+
+computed:{
+    isCheckAll:{
+        get(){
+            return this.shopCartList.every(item => item.isChecked === 1)//现在全选框是否打√
+        },
+        set(){}
+    },
+        checkNum(){
+            //统计选择的数量,每次拿的都是前一个pre
+            return this.shopCartList.reduce((pre,item)=>{
+                if(item.isChecked ===1){
+                    pre += item.skuNum
+                }
+                return pre;
+            },0)
+        },
+            //统计总价
+        allMoney(){
+            return this.shopCartList.reduce((pre,item)=>{
+                if(item.isChecked ===1){
+                    pre += item.skuNum *item.skuPrice
+                }
+                return pre;
+            },0)
+        }
+}
+
+c="select-all"
+	 <div class="select-all">
+        <input class="chooseAll" type="checkbox" v-model="isCheckAll" />
+        <span>全选</span>
+      </div>
+
+c="chosed"
+	<div class="chosed">
+          已选择
+          <span>{{checkNum}}</span>件商品
+    </div>
+<div class="sumprice">
+          <em>总价（不含运费） ：</em>
+          <i class="summoney">{{allMoney}}</i>
+</div>
+
+总价标签
+//现在看动态数据展示
+
+//下面是交互功能,修改数量,选中状态,删除
+//重新请求购物车页面才能让数量变化,重新渲染页面
+//发请求传递的skuNum不是最终买的件数,关键看原来购物车有没有这件商品
+//接口和添加购物车功能是同一个接口
+c="cart-list-con5",- +的点击事件,鼠标失去焦点的时候,发请求,改购物车数量
+<a href="javascript:void(0)" class="mins" @click="updateCartNum(cart,-1)">-</a>
+
+//发请求更新购物车数量
+<input
+              autocomplete="off"
+              type="text"
+              :value="cart.skuNum"
+              minnum="1"
+              class="itxt"
+              @change="updateCartNum(cart,$event.target.value*1)"
+/>
+ <a href="javascript:void(0)" class="plus" @click="updateCartNum(cart,1)">+</a>
+
+methods:{
+    async updateCartNum(cart, disNum) {
+      //校正数量,disNUm是想改变的量
+      if (cart.skuNum + disNum < 1) {
+        disNum = 1 - cart.skuNum; //disNum和原来的数量加起来最少得是1,如果小于1得对disNum修正
+      }
+
+      //发请求去处理数量，返回成功后重新请求列表数据，就会看到最新的数据
+      try {
+        await this.$store.dispatch("addOrUpdateCart", {
+          skuId: cart.skuId,
+          skuNum: disNum,
+          //vue调试查看skuId
+        });
+        this.getShopCartList();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+        
+}
+//看点击加号netWork有没有发请求,失去焦点是否修正
+
+//修改选中状态功能
+api文档-8.切换商品选中状态
+api/index.js
+export const reqUpdateIsCheck = (skuId,isChecked) => {
+    return Ajax({
+        url:`/cart/checkCart/${skuId}/${isChecked}`,
+        method:'get'
+    })
+}
+
+store/shopcart.js里面引入api里面的reqUpdateIsCheck
+  async updateIsCheck({commit},{skuId,isChecked}){
+    const result = await reqUpdateIsCheck(skuId,isChecked)
+    if(result.code === 200){
+      return 'ok'
+    }else{
+      return Promise.reject(new Error('failed'))  //返回的是失败的promise 结果就是这个return返回的失败的promise的原因
+      // return 'failed'  行 但是async函数将永远返回成功状态的promise
+    }
+  },
+
+shopcart/index.vue
+c="cart-list-con1" input单击事件,@click="updateOne(cart)"
+
+async updateOne(cart){
+    //发请求
+    try{
+         await this.$store.dispatch('updateIsCheck',{skuId:cart.skuId,isChecked:cart.isChecked === 1? 0 :1})
+    //结果成功去重新请求列表页数据
+        this.getShopCartList()
+    }catch(error){
+         alert(error.message)
+    }
+   
+}
+//现在检查单个选中状态
+
+//全选按钮同步选中状态
+shopcart/index.vue
+computed:{
+        isCheckAll:{
+       async set(val){//最新值,要修改所有的状态,val对应的状态,val如果是true就对应1,因为isCHecked只认识数字,如果是false就对应0,默认传的是布尔值
+           try {
+              const result = await this.$store.dispatch('updateAllIsCheck',val?1:0)
+              console.log(result)
+              this.getShopCartList()
+            } catch (error) {
+              alert(error.message)
+            } 
+        }
+    }
+}
 
 
+store/shopcart.js
+async updateAllIsCheck({commit,state,dispatch},isChecked){
+    let promises = [];
+    state.shopCartList.forEach(item =>{
+        //遍历每一个购物车,如果选中状态本身就和传递过来要修改的状态一样,就不用发请求了
+        if(item.isChecked === isChecked) return
+        //如果不一样,都需要发送请求,而且所有的请求都成功才算成功
+        //可以从一个dispatch触发另一个dispatch
+        let promise = dispatch('updateIsCheck',{skuId:item.skuId,isChecked})
+                                                                       promises.push(promise)
+    })
+    //Promise.all()   处理多个promise的数组，如果都成功那么返回的promise才成功，结果是每个成功的promise的结果组成数组,如果失败，返回的第一个失败的promise的reason
+    return Promise.all(promises)
+}
+//检查点击全选按钮是否生效,是否打印'ok,ok'
+```
+
+## 删除购物车数据
 
 
-		交互：
-			更新购物车数量数据
-	
-			更新购物车选中状态数据
+```js
+		删除购物车数据,跟复选框功能一样
+//单个删除
+api/index.js
+export const reqDeleteCart = (skuId)=>{
+    return Ajax({
+        url:`/cart/deleteCart/${skuId}`,
+        method:'delete'
+    })
+}
+store/shopcart.js
+async deleteCart({commit},skuId){
+    const relut =await reqDeleteCart(skuId)
+    if(result.code === 200){
+       return 'ok'
+       }else{
+         return Promise.reject(new Error('failed'))  				//返回的是失败的promise 结果就是这个return返回的失败的promise的原因
+      // return 'failed'  行 但是async函数将永远返回成功状态的promise
+    }
+}
 
+shopcart/index.vue
+删除和移到收藏标签, @click='deleteOne(cart)'
+async deleteOne(cart){
+    try {
+        await this.$store.dispatch("deleteCart", cart.skuId);
+        this.getShopCartList();
+      } catch (error) {
+        alert(error.message);
+      }
+}
+//检测删除一个,有一个bug,全选还是√
+shopcart/index.vue
+isCheckAll:{
+    get() {
+        return this.shopCartList.every((item) => item.isChecked === 1) && this.shopCartList.length > 0;
+      },
+}
 
+//下午进度
 
-Promise.all()  处理多个promise的数组，如果都成功那么返回的promise才成功，结果是每个成功的结果数组
-				       如果失败，返回的失败的promise的reason
+//删除多个的功能
+shopcart.js
+async deleteAllCheckCart({commit,state,dispatch}){
+    let promises = []
+    state.shpCartList.forEach(item => {
+        if(item.isChecked === 0) return
+        let promise = dispatch('deleteCart',item.skuId)
+        promises.push(promise)
+    })
+    return Promise.all(promises)
+}
 
-
-
-
-
-
-			删除购物车数据
+shopcart/index.vue
+删除选中商品标签,@click="deleteAll"
+async deleteAll(){
+    try{
+        await this.$store.dispatch('deleteAllCheckCart')
+        this.getShopCartList()
+    }catch(error){
+        alert(error.message)
+    }
+}
+//检测删除商品是否发请求,到这里购物车就做完了 
+```
 
 
 ​							
 
 购物车完成后该去创建订单了，此时登录注册就必须要搞定，因为只有登录的用户才有创建订单的可能
 
+```js
+代码/静态组件/注册&登录_静态 两个文件放到pages替换,然后有bug
+login/index.vue
+../../assets/images/icons.png问题,全局搜索
+pages/HOme/Like/images icons.png拿过来
+测试点击登录和注册页面
+icons.png统一放到assets,修改Like和ListContainer里面的路径
 
-day 09			
-	
+注册里面有登录,登录里面有注册
+pages/Login/Register
+登录标签,<router-link to="/login" />
+
+api文档,16.3
+第一次登录的时候会有一个token,是登录后的身份标识,后台创建的,所以发请求要把token带上
+userTempId是前台我们自己用uuid自己生成的
+
+api/index.js
+//请求注册 /api/user/passport/register post {mobile,password.code}
+export const reqRegister = (userInfo)=>{
+    return Ajax({
+        url:'/user/passport/register',
+        method:'post',
+        data:userInfo
+    })
+}
+
+store/user.js
+引入api里面的reqRegister
+const actions ={
+    async register({commit},userInfo){
+        const result = await reqRegister(userInfo)
+        if(){
+           
+           }else{
+            
+        }
+    }
+}
+
+**Register/index.vue**
+完成注册按钮,@click="Register"
+c="content",input,
+验证码
+登录密码
+确认密码
+export default{
+    data(){
+        return{
+            mobile:"",
+            code:"",
+            password:"",
+            password2:""
+        }
+    }
+    methods:{
+        register(){
+            //收集参数形成对象
+            let {mobile,code,password,password2} = this;
+            if(mobile && code && password && password2 && password === password2){
+                //初步的验证
+                //dispatch相关的action把参数对象传递过去进行注册
+                try{
+                    await this.$store.dispatch('register',{mobile,code,password})
+                    alert('注册成功,自动跳转登录页')
+                    this.$router.push('/login')
+                }catch(error){
+                    alert(error.message)
+                }
+            }
+        }
+    }
+}
+
+验证码标签
+这个写法是跨域的,以来的是代理去解决的
+<img ref="code" src="/api/user/passport/code" alr="code"
+@resetCode
+methods:{
+    resetCode(){
+        this.$refs.code.src = '/api/user/passport/code'
+    }
+}
+//测试注册功能
+```
+
+
+
 71、	注册：
 		静态组件
 		api
 		store
 		收集数据发送请求
 		请求成功代表注册成功，那么就跳转到登录页	
-	
-		
-72、	登录：
-		
-		静态组件
-		api
-		store
-		收集数据发送请求
-		请求成功后需要把用户信息保存在localStorage用于自动登录
-		state的用户信息也要修改，
-		state的用户信息读取先从localStorage里面去读，没有就是{},通过登录去修改
-		以后每次发请求都要携带这个用户信息的token
-		修改头部的用户状态信息
+
+```js
+
+```
 
 
-	自动登录：  不需要请求 就是把用户信息存储完了再次打开取出展示
+
+## 72、	登录：
+
+```js
+	静态组件
+	api
+	store
+	收集数据发送请求
+	请求成功后需要把用户信息保存在localStorage用于自动登录
+	state的用户信息也要修改，
+	state的用户信息读取先从localStorage里面去读，没有就是{},通过登录去修改
+	以后每次发请求都要携带这个用户信息的token
+	修改头部的用户状态信息
+api/index.js
+//请求登录
+export const reqLogin = (userInfo)=>{
+    return Ajax(){
+        url:
+        method:'post',
+        data:userInfo
+    }
+}
+
+store/user.js
+const state = {
+    userTempId:
+    userInfo:{}
+}
+const mutations = {
+    receiveuserInfo(state,userInfo){
+        
+    }
+}
+const actions = {
+    
+}
+async login(){
+    
+}
+
+Login/index.vue
+登录
+邮箱/用户名/手机号
+请输入密码
+
+export default{
+    data(){
+        return{
+            mobile:'',
+            password
+        }
+    }
+    methods:{
+       async login(){
+            //收集数据参数形成参数对象
+            let{mobile,password} = this
+            if(mobile && password){
+                try{
+                    await this.$store.dispatch('login',{mobile,password})
+                }catch(error){
+                    alert(error.message)
+                }
+               
+            }
+        }
+    }
+}
+//这时候登录就做完了
+登录button按钮没有规定类型,默认就是提交按钮
+@click.prevent,清除默认行为
+登录成功看vux,userInfo
+
+//登录成功页面显示用户名
+Header/index.vue
+复制p标签,v-if="$store.state,user.userInfo.name",v-else=""
+```
+
+## 自动登录
+
+
+```js
+自动登录：  不需要请求 就是把用户信息存储完了再次打开取出展示
+想要自动登录,必须把数据保存一份
+store/user.js
+async login(){
+    if(){
+       localStorage.setItem()
+       }
+}
+const state = {
+    userInfo:JSON.parse(localStorage.getItem('USERINFO_KEY'))||{},
+}
+
+```
 
 
 ​		
-73、	退出登录：
+## 73、	退出登录：
 ​			
 ​		请求成功在store中把用户信息的数据清除（state和localStorage里面都要清除）
+
+```js
+Header/index.vue
+退出登录,点击事件
+methods:{
+    
+}
+
+api/indwx.js
+//请求退出登录
+export const reqLogout = () =>{
+    
+}
+
+store/user.js
+asynv reqLogout({commit}){
+    cosnt result =await reqLogout()
+    if(result.code===200){
+        //清空localStorage当中的用户数据
+        //清空state当中的userInfo数据
+        localStorage.removeItem('USERINFO_KEY')
+        commit('RESETUSERINFO')
+        return 'ok'
+    }else{
+        return Promise.reject(new Error('failed'))
+    }
+}
+cosnt mutations = {
+    resetUserInfo(state){
+        state.userInfo={
+            
+        }
+    }
+}
+
+Header/index.vue
+async logout(){
+    try{
+        await this.$store.dispatch('logout')
+        alert('退出登录成功,自动跳转首页')
+        this.$router.push('/')
+    }catch(error){
+        alert(error.message)
+    }
+}
+//测试退出功能
+```
 
 
 
@@ -3659,6 +4153,10 @@ day10
 会去到订单支付页面 =》 
 点击立即支付会弹出二维码
 
+```js
+
+```
+
 
 
 
@@ -3685,6 +4183,10 @@ day10
 77、   订单支付页面也需要支付信息   需要在订单支付页面根据订单编号发送请求获取支付信息，完成页面展示
 	需要发请求根据订单编号，查询订单数据，展示页面
 
+```js
+
+```
+
 
 
 78、  点击订单支付页面立即支付会出现一个支付二维码
@@ -3705,13 +4207,20 @@ day10
 			（需要放在messageBox的beforeClose回调当中去，判断 然后手动关闭）
 		7、支付成功才能到支付成功页面，那么我们都要去花钱，所以把支付功能简化，直接点击就能跳
 
-
-​	
 79、支付成功后我们可以跳转到支付成功页面
 ​	静态组件
 
+```js
+
+```
+
+
 
 80、在支付成功页面我们可以选择继续购物，去到首页  也可以查看订单，去到用户中心
+
+```js
+
+```
 
 
 
@@ -3726,6 +4235,9 @@ day 11
 	展示我的订单页面
 	分页器的使用 和前面一样  把该传递的参数要传递过去  子组件点击修改页面，要通知父组件修改
 
+```js
+
+```
 
 
 
@@ -3733,23 +4245,57 @@ day 11
 	有特定条件才能去到相应的页面的功能  
 	拦截路由，查看是否满足条件，满足的放行，不满足的处理
 
+```js
+
+```
+
+
 
 83、必须登录后才能访问的多个界面使用全局守卫（交易相关、支付相关、用户中心相关） 自动跳转前面想而没到的页面
-	
+
+```js
+
+```
+
+
 
 84、只有没登录才能看到登录的界面 路由独享守卫和组件守卫
+
+```js
+
+```
+
 
 
 85、只有携带了skuNum和sessionStorage内部有skuInfo数据  才能看到添加购物车成功的界面
 
+```js
+
+```
+
+
 
 86、只有从购物车界面才能跳转到交易页面（创建订单）
+
+```js
+
+```
+
 
 
 87、只有从交易页面（创建订单）页面才能跳转到支付页面
 
+```js
+
+```
+
+
 
 88、只有从支付页面才能跳转到支付成功页面
+
+```js
+
+```
 
 
 
@@ -3773,11 +4319,20 @@ day 11
 	(4)	import('模块路径'): webpack会对被引入的模块单独打包一个小文件
 	(5)     当第一次访问某个路径对应的组件时，此时才会调用import函数去加载对应的js打包文件
 
-
 91、验证规则插件的使用vee-validate  使用2版本  最新3版本
+
+```js
+
+```
+
 
 
 92、Pagination组件使用element-ui的组件
-	
+
+```js
+
+```
+
+
 
 

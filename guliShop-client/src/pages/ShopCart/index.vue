@@ -11,7 +11,7 @@
         <div class="cart-th6">操作</div>
       </div>
       <div class="cart-body">
-        <ul class="cart-list" v-for="(cart, index) in shopCartList" :key="cart.id">
+        <ul class="cart-list" v-for="cart in shopCartList" :key="cart.id">
           <li class="cart-list-con1">
             <input
               type="checkbox"
@@ -22,29 +22,39 @@
           </li>
           <li class="cart-list-con2">
             <img :src="cart.imgUrl" />
-            <div class="item-msg">{{cart.skuName}}</div>
+            <div class="item-msg">{{ cart.skuName }}</div>
           </li>
 
           <li class="cart-list-con4">
             <span class="price">399.00</span>
           </li>
           <li class="cart-list-con5">
-            <a href="javascript:void(0)" class="mins" @click="updateCartNum(cart,-1)">-</a>
+            <a
+              href="javascript:void(0)"
+              class="mins"
+              @click="updateCartNum(cart, -1)"
+              >-</a
+            >
             <input
               autocomplete="off"
               type="text"
               :value="cart.skuNum"
               minnum="1"
               class="itxt"
-              @change="updateCartNum(cart,$event.target.value*1)"
+              @change="updateCartNum(cart, $event.target.value * 1)"
             />
-            <a href="javascript:void(0)" class="plus" @click="updateCartNum(cart,1)">+</a>
+            <a
+              href="javascript:void(0)"
+              class="plus"
+              @click="updateCartNum(cart, 1)"
+              >+</a
+            >
           </li>
           <li class="cart-list-con6">
-            <span class="sum">{{cart.skuPrice * cart.skuNum}}</span>
+            <span class="sum">{{ cart.skuPrice * cart.skuNum }}</span>
           </li>
           <li class="cart-list-con7">
-            <a href="#none" class="sindelet">删除</a>
+            <a href="#none" class="sindelet" @click="deleteOne(cart)">删除</a>
             <br />
             <a href="#none">移到收藏</a>
           </li>
@@ -57,18 +67,19 @@
         <span>全选</span>
       </div>
       <div class="option">
-        <a href="#none">删除选中的商品</a>
+        <a href="#none" @click="deleteAll">删除选中的商品</a>
         <a href="#none">移到我的关注</a>
         <a href="#none">清除下柜商品</a>
       </div>
       <div class="money-box">
         <div class="chosed">
           已选择
-          <span>{{checkNum}}</span>件商品
+          <span>{{ checkNum }}</span
+          >件商品
         </div>
         <div class="sumprice">
           <em>总价（不含运费） ：</em>
-          <i class="summoney">{{allMoney}}</i>
+          <i class="summoney">{{ allMoney }}</i>
         </div>
         <div class="sumbtn">
           <a class="sum-btn" href="###" target="_blank">结算</a>
@@ -120,24 +131,46 @@ export default {
         alert(error.message);
       }
     },
+    async deleteOne(cart) {
+      try {
+        await this.$store.dispatch("deleteCart", cart.skuId);
+        this.getShopCartList();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+    //删除多个选中的购物车选框
+    async deleteAll() {
+      try {
+        await this.$store.dispatch("deleteAllCheckCart");
+        this.getShopCartList();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
   },
   computed: {
     ...mapState({
       shopCartList: (state) => state.shopcart.shopCartList,
-      
     }),
     isCheckAll: {
       get() {
-        return this.shopCartList.every((item) => item.isChecked === 1); //现在全选框是否打√
+        return (
+          this.shopCartList.every((item) => item.isChecked === 1) &&
+          this.shopCartList.length > 0
+        ); //现在全选框是否打√
       },
       async set(val) {
         //最新值,要修改所有的状态,val对应的状态,val如果是true就对应1,因为isCHecked只认识数字,如果是false就对应0,默认传的是布尔值
         try {
-          const result = await this.$store.dispatch('updateAllIsCheck',val?1:0)
-          console.log(result)
-          this.getShopCartList()
+          const result = await this.$store.dispatch(
+            "updateAllIsCheck",
+            val ? 1 : 0
+          );
+          console.log(result);
+          this.getShopCartList();
         } catch (error) {
-          alert(error.message)
+          alert(error.message);
         }
       },
     },

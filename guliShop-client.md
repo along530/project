@@ -274,7 +274,7 @@ index.html
   
   ```
 
-  - Search/index.vue
+  - **Search/index.vue**
 
   - ```vue
     <template>
@@ -313,7 +313,7 @@ index.html
 	从route当中可以获取到path判断可以解决但是麻烦
 	
 
-12、路由传参相关
+## 12、路由传参相关 
 
 	1)跳转路由的2种基本方式
 	        	声明式: <router-link to="">
@@ -360,22 +360,23 @@ index.html
 
 
 
-13、先来搞Home,Home的子组件静态页面实现
-	费时费力  但是莫急莫慌
+## 13、先来搞Home,Home的子组件静态页面实现
+​	费时费力  但是莫急莫慌
 
 - Brand  Floor  Like  ListContainer  Rank  Recommend  分别给每个文件夹添加图片文件夹和index.vue
 
 Home的静态页面就有了，接下来要去实现动态数据
 
-14、**postman测试后台api接口，保存请求信息以便后期使用（参考接口文档）**
-	**postman的基本使用方法**
+## 14、**postman测试后台api接口，保存请求信息以便后期使用（参考接口文档）**
+​	**postman的基本使用方法**
 
 
 
-15、前后台交互模块ajax模块，对axios的二次封装
-	获取数据离不开ajax，所以先把ajax工具搞定
+## 15、前后台交互模块ajax模块，对axios的二次封装
+​	获取数据离不开ajax，所以先把ajax工具搞定
 
-		配置基础路径和超时限制
+	src/ajax
+	配置基础路径和超时限制
 	    const instance = axios.create({
 	      baseURL: "/api", //配置基础路径
 	      timeout: 20000, //配置请求超时时间
@@ -410,7 +411,6 @@ Home的静态页面就有了，接下来要去实现动态数据
 	);
 
 
-​	
 ​		统一处理请求错误, 具体请求也可以选择处理或不处理
 
 
@@ -423,7 +423,7 @@ Home的静态页面就有了，接下来要去实现动态数据
 ```js
 //这个文件是所有的接口请求函数的文件
 //每个请求接口数据都定义成一个函数,以后哪里需要请求数据,就调用对应的这个接口请求函数就好了
-import Ajax from '@/ajax/Ajax'//刚才暴露出去的instance
+import Ajax from '@/ajax/Ajax.js'//刚才暴露出去的instance
 //拿到三级列表的数据,调用这个函数就可以了
 export const reqCategoryList = ()=>{
     return Ajax({
@@ -436,9 +436,10 @@ reqCategoryList()
 
 
 
-17、测试ajax请求机解决跨域问题
-	
+## 17、测试ajax请求解决跨域问题
+
 ```js
+vue.config.js
 返回404需要解决跨域
 配置代理服务器解决跨域问题
 module.exports = {
@@ -474,7 +475,7 @@ module.exports = {
 <img src="E:\前端学习资料\0422前端\渊哥\视频\0812前台项目02\vuex模块化开发.png" alt="vuex模块化开发" style="zoom: 200%;" />
 
 ```js
-home.js
+storehome.js
 import {reqCategoryList} from '@/api'
 
 const state = {
@@ -593,8 +594,8 @@ const getters = {
 
 
 
-19、获取到数据后显示三级分类列表
-	分析数据结构：在模板上展示数据v-for
+## 19、获取到数据后显示三级分类列表
+​	分析数据结构：在模板上展示数据v-for
 
 	鼠标悬停在链接上变色，需要修改一下公共样式
 	悬停在分类上背景色需要变化，修改分类组件的样式
@@ -613,7 +614,7 @@ em代表的是三级分类,留一个,再遍历c2.categoryChild里面的c3,:key
 
 
 
-# day03
+# day03 防抖节流 按需引入lodash 
 
 
 
@@ -766,9 +767,9 @@ moveIn: throttle(
 
 
 
-29、利用自定义属性携带动态数据
-	标签的data-开头的属性，叫做自定义属性
-	通过我们的标签对象.dataset跳转搜索页后
+## 29、利用自定义属性携带动态数据
+​	标签的data-开头的属性，叫做自定义属性
+​	通过我们的标签对象.dataset跳转搜索页后
 
 ```js
  href="javascript:;"
@@ -788,23 +789,22 @@ href="javascript:;"
 
 
 
-
-30、搜索页的typeNav一级列表隐藏
-	首先这个组件被多个页面公用
-	在mounted的时候可以判断路由是不是home如果不是把isShow改为false,  只是初始显示组件的时候隐藏一级分类
+## 30、搜索页的typeNav一级列表隐藏
+​	首先这个组件被多个页面公用
+​	在mounted的时候可以判断路由是不是home如果不是把isShow改为false,  只是初始显示组件的时候隐藏一级分类
 
 
 	移入的时候，一级分类要显示
 	再次考虑外部盒子移入和移出  首页的移入移出，不会隐藏，但是其余的会移出隐藏，因此移入和移出我们需要使用回调函数
 	点击搜索类别跳转到当前搜索页面也要把一级类别隐藏
 
-31、显示和隐藏一级列表的过渡效果添加
-	首先谁要加过渡就看谁在隐藏和显示
-	需要放在transition标签内部，name需要起名字
-	参考官方给的过渡图
-	移入的时候是有过渡的
-	移出的时候立马隐藏的
-	注意：高度也是变化的
+## 31、显示和隐藏一级列表的过渡效果添加
+​	首先谁要加过渡就看谁在隐藏和显示
+​	需要放在transition标签内部，name需要起名字
+​	参考官方给的过渡图
+​	移入的时候是有过渡的
+​	移出的时候立马隐藏的
+​	注意：高度也是变化的
 
 ```js
 TypeNav/index.vue
@@ -908,11 +908,11 @@ TypeNav/index.vue
 
 
 
-32、优化typeNav数据ajax请求次数，改变请求的位置
-	之前我们是在typeNav组件内部dispatch去发送ajax请求，这样的话
-	因为typeNav是被多个页面公用的，所以每次切换到一个页面，这个组件都会重新创建  mounted都会执行
-	因此有几个页面公用了这个typeNav就会执行几次ajax请求
-	所以我们放到App里面就只用执行一次，因为数据一样，没必要多次请求
+## 32、优化typeNav数据ajax请求次数，改变请求的位置
+​	之前我们是在typeNav组件内部dispatch去发送ajax请求，这样的话
+​	因为typeNav是被多个页面公用的，所以每次切换到一个页面，这个组件都会重新创建  mounted都会执行
+​	因此有几个页面公用了这个typeNav就会执行几次ajax请求
+​	所以我们放到App里面就只用执行一次，因为数据一样，没必要多次请求
 
 ```js
 src/components/TypeNav/index.vue
@@ -955,12 +955,12 @@ const mutations = {
 
 
 
-33、合并分类的query参数和搜索关键字的params参数
-	找到对应组件
-	点击search按钮的时候，去看看有没有query参数
-	点击类别选项的时候，去看看有没有params参数
-	注意：我们点击搜索的时候关键字使用的是params参数
-	      点击类别选项的时候我们的参数使用的是query参数
+## 33、合并分类的query参数和搜索关键字的params参数
+​	找到对应组件
+​	点击search按钮的时候，去看看有没有query参数
+​	点击类别选项的时候，去看看有没有params参数
+​	注意：我们点击搜索的时候关键字使用的是params参数
+​	      点击类别选项的时候我们的参数使用的是query参数
 
 ```js
 components/Header/index.vue
@@ -1001,13 +1001,13 @@ toSearch(e){
 
 接下来我们就要做首页的ListContainer和Floor组件
 
-34、设计json数据的结构和值
-	banners.json
-	floors.json
-	
+## 34、设计json数据的结构和值
+​	banners.json
+​	floors.json
+​	
 35、使用mockjs来模拟数据接口（其实和ajax差不多，mock其实就是给我们的json数据指定一个url路径去做请求）
-	准备json数据
-	使用mockjs来模拟提供接口地址
+​	准备json数据
+​	使用mockjs来模拟提供接口地址
 
 - 在main中引入mockServer.js
 
@@ -1304,11 +1304,11 @@ center类名改src="floor.bigImg",当成js解析
 
 
 
-36、mock数据的随机语法
-	看文档
+## 36、mock数据的随机语法
+​	看文档
 
-37、mock数据的vuex编码
-	和categoryList的获取几乎一致，把mock接口当真正接口对待就好了
+## 37、mock数据的vuex编码
+​	和categoryList的获取几乎一致，把mock接口当真正接口对待就好了
 
 **src/store/home.js**
 
@@ -1329,10 +1329,10 @@ actions
    },
 ```
 
-38、实现页面轮播
-	swiper的用法参考官方网站
-	安装 引入js和css
-	swiper必须在页面的数据结构显示完成后创建才会生效
+## 38、实现页面轮播
+​	swiper的用法参考官方网站
+​	安装 引入js和css
+​	swiper必须在页面的数据结构显示完成后创建才会生效
 
 **listContainer/index.vue**
 
@@ -1488,7 +1488,7 @@ export default {
 
 ```
 
-**39、解决swiper影响多个页面的bug**
+## 39、解决swiper影响多个页面的bug
 
 **ListerContainer/index.vue**
 
@@ -1499,10 +1499,10 @@ export default {
 	<div class="swiper-container" ref="banner"></div>
 	使用SliderLoop组件,给SliderLoop传递bannerList数据
 	<SliderLoop :bannerList="bannerList"></SliderLoop>
+		静态页面是没问题的
+		静态页面不需要等待数据，因此mounted完全可以去创建swiper
 
-**40、swiper创建的时间应该是在页面列表创建之后才会有效果**
-	静态页面是没问题的
-	静态页面不需要等待数据，因此mounted完全可以去创建swiper
+## 40、swiper创建的时间应该是在页面列表创建之后才会有效果
 
 **src/pages/Home/ListContainer**
 
@@ -1534,9 +1534,9 @@ mounted() {
 
 
 
-41、使用watch + nextTick  去解决比较好	
-	Vue.nextTick 和 vm.$nextTick 效果一样
-	nextTick是在最近的更新dom之后会立即调用传入nextTick的回调函数
+## 41、使用watch + nextTick  去解决比较好
+​	Vue.nextTick 和 vm.$nextTick 效果一样
+​	nextTick是在最近的更新dom之后会立即调用传入nextTick的回调函数
 
  **src/pages/Home/ListContainer**
 
@@ -1571,8 +1571,8 @@ mounted() {
   // },
 ```
 
-42、动态显示Floor组件
-	数据要对应起来
+## 42、动态显示Floor组件
+​	数据要对应起来
 
 **pages/Home/index.vue**
 
@@ -1585,9 +1585,9 @@ mounted() {
 
 
 
-43、Floor当中的轮播没效果？
-	它是根据数据循环创建组件对象的，外部的floor创建的时候
-	所以数据肯定是已经获取到了，所以我们在mounted内部去创建swiper
+## 43、Floor当中的轮播没效果？
+​	它是根据数据循环创建组件对象的，外部的floor创建的时候
+​	所以数据肯定是已经获取到了，所以我们在mounted内部去创建swiper
 
 **pages/Home/Floor/index.vue**
 
@@ -1611,8 +1611,8 @@ mounted() {
   },
 ```
 
-44、定义可复用的轮播组件
-	banner是在watch当中去创建swiper 因为组件创建的时候数据不一定更新
+## 44、定义可复用的轮播组件
+​	banner是在watch当中去创建swiper 因为组件创建的时候数据不一定更新
 
 **src/components/SliderLoop**
 
@@ -3819,9 +3819,11 @@ export const reqDeleteCart = (skuId)=>{
         method:'delete'
     })
 }
+
 store/shopcart.js
+引入api里面的reqDeleteCart方法
 async deleteCart({commit},skuId){
-    const relut =await reqDeleteCart(skuId)
+    const result =await reqDeleteCart(skuId)
     if(result.code === 200){
        return 'ok'
        }else{
@@ -3842,11 +3844,14 @@ async deleteOne(cart){
 }
 //检测删除一个,有一个bug,全选还是√
 shopcart/index.vue
-isCheckAll:{
+computed:{
+    isCheckAll:{
     get() {
         return this.shopCartList.every((item) => item.isChecked === 1) && this.shopCartList.length > 0;
       },
+    }
 }
+//再次测试删除所有,全选按钮的√是否取消
 
 //下午进度
 
@@ -3854,7 +3859,7 @@ isCheckAll:{
 shopcart.js
 async deleteAllCheckCart({commit,state,dispatch}){
     let promises = []
-    state.shpCartList.forEach(item => {
+    state.shopCartList.forEach(item => {
         if(item.isChecked === 0) return
         let promise = dispatch('deleteCart',item.skuId)
         promises.push(promise)
@@ -3863,7 +3868,7 @@ async deleteAllCheckCart({commit,state,dispatch}){
 }
 
 shopcart/index.vue
-删除选中商品标签,@click="deleteAll"
+删除选中的商品标签,@click="deleteAll"
 async deleteAll(){
     try{
         await this.$store.dispatch('deleteAllCheckCart')
@@ -3875,22 +3880,29 @@ async deleteAll(){
 //检测删除商品是否发请求,到这里购物车就做完了 
 ```
 
+## 71、	注册：
 
-​							
-
+	
+		静态组件
+		api
+		store
+		收集数据发送请求
+		请求成功代表注册成功，那么就跳转到登录页	
 购物车完成后该去创建订单了，此时登录注册就必须要搞定，因为只有登录的用户才有创建订单的可能
 
 ```js
 代码/静态组件/注册&登录_静态 两个文件放到pages替换,然后有bug
 login/index.vue
-../../assets/images/icons.png问题,全局搜索
-pages/HOme/Like/images icons.png拿过来
+../../assets/建images/icons.png问题,全局搜索
+pages/Home/Like/images 
 测试点击登录和注册页面
-icons.png统一放到assets,修改Like和ListContainer里面的路径
+icons.png拿过来统一放到assets,修改Like和ListContainer和Login里面的路径
+Like和ListContainer是../../../assets/images/icons.png
+Login是../../assets/images/icons.png
 
 注册里面有登录,登录里面有注册
 pages/Login/Register
-登录标签,<router-link to="/login" />
+登录标签,<router-link to="/login">登陆</router-link>
 
 api文档,16.3
 第一次登录的时候会有一个token,是登录后的身份标识,后台创建的,所以发请求要把token带上
@@ -3910,18 +3922,23 @@ store/user.js
 引入api里面的reqRegister
 const actions ={
     async register({commit},userInfo){
-        const result = await reqRegister(userInfo)
-        if(){
-           
-           }else{
-            
-        }
+    const result = await reqRegister(userInfo)
+    if(result.code === 200){
+      return 'ok'
+    }else{
+      return Promise.reject(new Error('failed'))
     }
+  },
 }
 
 **Register/index.vue**
 完成注册按钮,@click="Register"
 c="content",input,
+    <input type="text" placeholder="请输入你的手机号" v-model="mobile" />
+    <input type="text" placeholder="请输入验证码" v-model="code" />
+    <input type="text" placeholder="请输入你的登录密码" v-model="password" />
+    <input type="text" placeholder="请输入确认密码" v-model="password2" />
+    
 验证码
 登录密码
 确认密码
@@ -3935,7 +3952,7 @@ export default{
         }
     }
     methods:{
-        register(){
+       async register(){
             //收集参数形成对象
             let {mobile,code,password,password2} = this;
             if(mobile && code && password && password2 && password === password2){
@@ -3954,9 +3971,9 @@ export default{
 }
 
 验证码标签
-这个写法是跨域的,以来的是代理去解决的
-<img ref="code" src="/api/user/passport/code" alr="code"
-@resetCode
+这个写法是跨域的,依赖的是代理去解决的
+<img ref="code" src="/api/user/passport/code" alt="code" @click="resetCode" />
+
 methods:{
     resetCode(){
         this.$refs.code.src = '/api/user/passport/code'
@@ -3966,17 +3983,6 @@ methods:{
 ```
 
 
-
-71、	注册：
-		静态组件
-		api
-		store
-		收集数据发送请求
-		请求成功代表注册成功，那么就跳转到登录页	
-
-```js
-
-```
 
 
 
@@ -4004,51 +4010,62 @@ export const reqLogin = (userInfo)=>{
 
 store/user.js
 const state = {
-    userTempId:
-    userInfo:{}
+    userInfo: JSON.parse(localStorage.getItem('USERINFO_KEY')) || {},
 }
 const mutations = {
-    receiveuserInfo(state,userInfo){
-        
-    }
+    RECEIVEUSERINFO(state,userInfo){
+    state.userInfo = userInfo
+  },
 }
+
 const actions = {
-    
+    async login({commit},userInfo){
+    const result = await reqLogin(userInfo)
+    if(result.code === 200){
+      commit('RECEIVEUSERINFO',result.data)
+      //我们要想自动登录，必须把登录后的信息存储起来，这样的话刷新页面vuex当中存储的数据就不见了
+      //但是我们不用再去登录给vuex存数据，而是让vuex从存储的地方去拿
+      localStorage.setItem('USERINFO_KEY',JSON.stringify(result.data))
+      return 'ok'
+    }else{
+      return Promise.reject(new Error('failed'))
+    }
+  },
 }
-async login(){
-    
-}
+
 
 Login/index.vue
 登录
-邮箱/用户名/手机号
-请输入密码
+邮箱/用户名/手机号 ,注意双向数据绑定
+请输入密码,注意双向数据绑定
 
 export default{
     data(){
         return{
             mobile:'',
-            password
+            password:''
         }
     }
     methods:{
-       async login(){
-            //收集数据参数形成参数对象
-            let{mobile,password} = this
-            if(mobile && password){
-                try{
-                    await this.$store.dispatch('login',{mobile,password})
-                }catch(error){
-                    alert(error.message)
-                }
-               
-            }
+      async login(){
+        //收集数据参数形成参数对象
+        let {mobile,password} = this
+        if(mobile && password){
+          try {
+            await this.$store.dispatch('login',{mobile,password})
+            alert('恭喜登录成功')
+            this.$router.push('/')
+          } catch (error) {
+            alert(error.message)
+          }
         }
+      }
     }
 }
 //这时候登录就做完了
 登录button按钮没有规定类型,默认就是提交按钮
 @click.prevent,清除默认行为
+ <button class="btn" @click.prevent="login">登&nbsp;&nbsp;录</button>
 登录成功看vux,userInfo
 
 //登录成功页面显示用户名
@@ -4064,10 +4081,15 @@ Header/index.vue
 想要自动登录,必须把数据保存一份
 store/user.js
 async login(){
-    if(){
-       localStorage.setItem()
-       }
-}
+    if (result.code === 200) {
+      commit("RECEIVEUSERINFO", result.data);
+      //我们要想自动登录，必须把登录后的信息存储起来，这样的话刷新页面vuex当中存储的数据就不见了
+      //但是我们不用再去登录给vuex存数据，而是让vuex从存储的地方去拿
+      localStorage.setItem("USERINFO_KEY", JSON.stringify(result.data));
+      return "ok";
+    } else {
+      return Promise.reject(new Error("failed"));
+    }
 const state = {
     userInfo:JSON.parse(localStorage.getItem('USERINFO_KEY'))||{},
 }
@@ -4084,17 +4106,41 @@ const state = {
 Header/index.vue
 退出登录,点击事件
 methods:{
-    
+    async logout(){
+      try {
+        await this.$store.dispatch('logout')
+        alert('退出登录成功,自动跳转到首页')
+        this.$router.push('/')
+      } catch (error) {
+        alert(error.message)
+      }
+    }
 }
+
+复制一个p标签,v-if v-else判断
+ <p v-if="$store.state.user.userInfo.name">
+            <!-- <router-link to="/login">登录</router-link> -->
+            <a href="javascript:;">{{ $store.state.user.userInfo.name }}</a>
+            <!-- <router-link to="/register" class="register">免费注册</router-link> -->
+            <a href="javascript:;" class="register" @click="logout">退出登录</a>
+          </p>
+<p v-else>
+            <span>请</span>
+            <router-link to="login">登录</router-link>
+            <router-link class="register" to="register">免费注册</router-link>
+</p>
 
 api/indwx.js
 //请求退出登录
 export const reqLogout = () =>{
-    
+    return Ajax({
+    url:'/user/passport/logout',
+    method:'get',
+  })
 }
 
 store/user.js
-asynv reqLogout({commit}){
+async reqLogout({commit}){
     cosnt result =await reqLogout()
     if(result.code===200){
         //清空localStorage当中的用户数据
@@ -4107,10 +4153,9 @@ asynv reqLogout({commit}){
     }
 }
 cosnt mutations = {
-    resetUserInfo(state){
-        state.userInfo={
-            
-        }
+        RESETUSERINFO(state){
+        state.userInfo = {}
+      }
     }
 }
 

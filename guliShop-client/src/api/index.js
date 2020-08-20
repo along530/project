@@ -51,14 +51,42 @@ reqGoodsListInfo({}); //空对象给了searchParams
 // reqCategoryList()
 export const reqShopCartList = () => {
   return Ajax({
-    url:'/cart/cartList',
-    method:'get'
-  })
-}
+    url: "/cart/cartList",
+    method: "get",
+  });
+};
 
-export const reqUpdateIsCheck = (skuId,isChecked) => {
+export const reqUpdateIsCheck = (skuId, isChecked) => {
   return Ajax({
-      url:`/cart/checkCart/${skuId}/${isChecked}`,
-      method:'get'
-  })
-}
+    url: `/cart/checkCart/${skuId}/${isChecked}`,
+    method: "get",
+  });
+};
+//删除购物车请求函数
+export const reqDeleteCart = (skuId) => {
+  return Ajax({
+    url: `/cart/deleteCart/${skuId}`,
+    method: "delete",
+  });
+};
+//请求注册 /api/user/passport/register post {mobile,password.code}
+export const reqRegister = (userInfo) => {
+  return Ajax({
+    url: "/user/passport/register",
+    method: "post",
+    data: userInfo,
+  });
+};
+export const reqLogin = (userInfo) => {
+  return Ajax({
+    url: "/user/passport/login",
+    method: "post",
+    data: userInfo,
+  });
+};
+export const reqLogout = () => {
+  return Ajax({
+    url: "/user/passport/logout",
+    method: "get",
+  });
+};

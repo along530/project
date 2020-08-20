@@ -6,7 +6,13 @@
       <div class="container">
         <div class="loginList">
           <p>尚品汇欢迎您！</p>
-          <p>
+          <p v-if="$store.state.user.userInfo.name">
+            <!-- <router-link to="/login">登录</router-link> -->
+            <a href="javascript:;">{{ $store.state.user.userInfo.name }}</a>
+            <!-- <router-link to="/register" class="register">免费注册</router-link> -->
+            <a href="javascript:;" class="register" @click="logout">退出登录</a>
+          </p>
+          <p v-else>
             <span>请</span>
             <router-link to="login">登录</router-link>
             <router-link class="register" to="register">免费注册</router-link>
@@ -33,8 +39,19 @@
       </h1>
       <div class="searchArea">
         <form action="###" class="searchForm">
-          <input type="text" id="autocomplete" class="input-error input-xxlarge" v-model="keyword" />
-          <button class="sui-btn btn-xlarge btn-danger" type="button" @click="toSearch">搜索</button>
+          <input
+            type="text"
+            id="autocomplete"
+            class="input-error input-xxlarge"
+            v-model="keyword"
+          />
+          <button
+            class="sui-btn btn-xlarge btn-danger"
+            type="button"
+            @click="toSearch"
+          >
+            搜索
+          </button>
         </form>
       </div>
     </div>
@@ -75,9 +92,18 @@ export default {
         this.$router.push(location);
       }
     },
-    clearKeyword() {
-      this.keyword = "";
+    async logout() {
+      try {
+        await this.$store.dispatch("logout");
+        alert("退出登录成功,自动跳转到首页");
+        this.$router.push("/");
+      } catch (error) {
+        alert(error.message);
+      }
     },
+    // clearKeyword() {
+    //   this.keyword = "";
+    // },
   },
   mounted() {
     this.$bus.$on("clearKeyword", this.clearKeyword);

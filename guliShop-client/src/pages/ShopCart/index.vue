@@ -29,12 +29,7 @@
             <span class="price">399.00</span>
           </li>
           <li class="cart-list-con5">
-            <a
-              href="javascript:void(0)"
-              class="mins"
-              @click="updateCartNum(cart, -1)"
-              >-</a
-            >
+            <a href="javascript:void(0)" class="mins" @click="updateCartNum(cart, -1)">-</a>
             <input
               autocomplete="off"
               type="text"
@@ -43,12 +38,7 @@
               class="itxt"
               @change="updateCartNum(cart, $event.target.value * 1)"
             />
-            <a
-              href="javascript:void(0)"
-              class="plus"
-              @click="updateCartNum(cart, 1)"
-              >+</a
-            >
+            <a href="javascript:void(0)" class="plus" @click="updateCartNum(cart, 1)">+</a>
           </li>
           <li class="cart-list-con6">
             <span class="sum">{{ cart.skuPrice * cart.skuNum }}</span>
@@ -74,8 +64,7 @@
       <div class="money-box">
         <div class="chosed">
           已选择
-          <span>{{ checkNum }}</span
-          >件商品
+          <span>{{ checkNum }}</span>件商品
         </div>
         <div class="sumprice">
           <em>总价（不含运费） ：</em>
@@ -83,6 +72,8 @@
         </div>
         <div class="sumbtn">
           <a class="sum-btn" href="###" target="_blank">结算</a>
+          <!-- <router-linke to="/trade"
+          class="sum-btn" >结算</router-linke> -->
         </div>
       </div>
     </div>
@@ -95,6 +86,7 @@ export default {
   name: "ShopCart",
   mounted() {
     this.getShopCartList();
+    this.getTradeInfo();
   },
   methods: {
     getShopCartList() {
@@ -148,10 +140,25 @@ export default {
         alert(error.message);
       }
     },
+    getTradeInfo() {
+      this.$store.dispatch("getTradeInfo");
+    },
+    //切换默认地址
+    changeDefault(address) {
+      this.userAddressList.forEach((item) => (item.isDefault = "0"));
+      address.isDefault = "1";
+    },
   },
   computed: {
     ...mapState({
       shopCartList: (state) => state.shopcart.shopCartList,
+      tradeInfo: (state) => state.trade.tradeInfo,
+      detailArrayList() {
+        return this.tradeInfo.detailArrayList || [];
+      },
+      userAddressList() {
+        return this.tradeInfo.userAddressList || [];
+      }, //看vue-trade组件
     }),
     isCheckAll: {
       get() {

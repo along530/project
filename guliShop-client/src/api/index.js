@@ -90,3 +90,9 @@ export const reqLogout = () => {
     method: "get",
   });
 };
+export const reqTradeInfo = ()=>{
+  return ajax({
+      url:'/order/auth/trade',
+      method:'get'
+  })
+}

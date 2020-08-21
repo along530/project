@@ -21,10 +21,17 @@ instance.interceptors.request.use((config) => {
   let userTempId = store.state.user.userTempId;
   config.headers.userTempId = userTempId;
 
+  //把登录后的标识也添加到请求头当中
+  let token = store.state.user.userInfo.token;
+  if (token) {
+    config.headers.token = token;
+  }
+  
   NProgress.start();
   //处理config(请求报文)
   //添加额外的功能,使用进度条
   return config; //返回这个config , 请求继续发送,发送的报文信息就是新的config对象
+  
 });
 
 // Add a response interceptor

@@ -124,10 +124,27 @@ module.exports = {
 
 ## 09、把Header和Footer的模板进行替换显示
 
-	引入html到vue组件 template
-	引入less到vue组件 style   解决loader   只需要安装less 和 less-loader就可以了
-	引入图片	
-	使用less需要npm i less-loader -D
+```js
+引入html到vue组件 template
+引入less到vue组件 style   解决loader   只需要安装less 和 less-loader就可以了
+引入图片	
+使用less需要npm i less-loader -D
+创建相应的组件文件夹拆分组件
+在 components 文件夹中创建 footer 和 header 组件文件夹
+将相应的 html 结构放入组件中
+将相应的 css 或者 less 文件放入组件中
+将图片文件(logo.png 和 wx_cz.jpg)放入组件文件夹下的 images 文件夹中
+在 App.vue 文件中引入并注册组件
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+export default {
+  name: "App",
+  components: {
+    Header,
+    Footer,
+  },
+};
+```
 
 ### 拆分非路由组件
 
@@ -300,9 +317,349 @@ index.html
     </style>
     ```
 
-  - 
+
+需要安装 npm i less-loader -D 
+
+运行程序是否正常; 
+
+#### 总结:
+
+A, 在pages目录下创建相应的路由组件Home, Login, Search, Register
+
+B, 将其引入到routes.js文件中, 并且配置路由
+
+```js
+import Home from '@/pages/Home'
+
+import Login from '@/pages/Login'
+
+import Search from '@/pages/Search'
+
+import Register from '@/pages/Register'
+
+export default [{
+
+        path: '/home',
+
+        component: Home
+
+    },
+
+    {
+
+        path: '/login',
+
+        component: Login
+
+    }, {
+
+        path: '/search',
+
+        component: Search
+
+    }, {
+
+        path: '/register',
+
+        component: Register
+
+    },
+
+]
+```
+
+## 配置路由
+
+A, 在router目录下创建路由配置index.js
+
+```js
+import Vue from 'vue'
+
+import VueRouter from 'vue-router'
+
+import routes from '@/router/routes'
+
+Vue.use(VueRouter)
+
+export default new VueRouter({
+
+    routes
+
+})
+```
+
+B, 在main.js中引入并且注册路由
+
+```js
+import Vue from 'vue'
+
+import App from './App.vue'
+
+import router from '@/router' //引入路由
+
+Vue.config.productionTip = false
+
+new Vue({
+
+    render: h => h(App),
+
+    router //注册路由
+
+}).$mount('#app')
+```
+
+C, 在App.vue中进行路由组件的展示
+
+```js
+在App.vue中添加: < router - view > < /router-view>
+```
+
+在src下创建路由组件文件夹pages, (components放非路由组件)
+
+Home文件夹/index.vue
+
+```js
+<template>
+  <div>Home</div>
+</template>
+
+<script>
+export default {
+  name: 'Home',
+}
+</script>
+
+<style lang="less" scoped>
+
+</style>
+
+```
+
+相应的创建Login, Register, Search组件; 
+
+Search组件
+
+写一个组件标签, 就相当于创建一个组件对象
+
+```js
+
+<template>
+  <div>
+
+Search <br>
+
+params参数:{{$route.params.keyword}}
+
+params参数简便获取:{{keyword}}
+
+query参数:{{$route.query.keyword}}
+
+query参数简便获取:{{keyword2}}
+   
+ </div>
+</template>
+
+<script>
+export default {
+  name: 'Search',
+  props:['keyword','keyword2','name']
+}
+</script>
+
+<style lang="less" scoped>
+
+</style>
+
+```
+
+在router 里面添加routes.js; 进行模块化
+
+在src目录下创建router文件夹, 并且创建index.js, routes.js
+index.js
+
+自定义模块的3步骤:
+
+
+
+1.引入js模块
+
+
+2, 声明js模块, 不声明使用无效 Vue.use(VueRouter)
+
+3, 使用js模块
+
+```js
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import routes from '@/router/routes'
+
+Vue.use(VueRouter) //声明使用插件  vue的插件都要去声明使用  第三方免了
+
+const router = new VueRouter({
+
+    routes
+})
+export default router
+```
+
+routes.js
+
+```js
+import Home from '@/pages/Home'
+
+import Search from '@/pages/Search'
+
+import Login from '@/pages/Login'
+
+import Register from '@/pages/Register'
+
+export default [
+
+    //专门配置各种路由的地方
+
+    路由和路由器要区分
+
+    {
+
+        path: '/home',
+
+        component: Home
+
+    },
+
+    {
+
+        path: '/search/:keyword?', //?代表这个params参数可以传也可以不传
+
+        component: Search,
+
+        name: 'search',
+
+        // props:true  //布尔值写法： 代表只是把params参数通过属性传递给相应的组件
+
+        // props:{name:'赵丽颖'} // 对象写法，只能传递静态的数据  几乎不用  因为需要额外传递静态数据才会用到
+
+        props(route) { //route 收集好参数的路由对象
+
+            //把传递过来的params参数和query参数一起映射为组件的属性（）
+
+            return {
+
+                keyword: route.params.keyword,
+
+                keyword2: route.query.keyword
+
+            }
+
+        }
+
+    },
+
+    {
+
+        path: '/login',
+
+        component: Login,
+
+        meta: {
+
+            isHide: true //证明要隐藏footer
+
+        }
+
+    },
+
+    {
+
+        path: '/register',
+
+        component: Register,
+
+        meta: {
+
+            isHide: true //证明要隐藏footer
+
+        },
+
+    },
+
+    //重定向
+
+    {
+
+        path: '/',
+
+        redirect: '/home'
+
+    }
+
+]
+```
+
+在main.js中引入router; 
+main.js
+
+```js
+import Vue from 'vue'
+import App from '@/App'
+import router from '@/router'
+//组件三大步： 定义  注册  使用
+
+Vue.config.productionTip = false
+
+new Vue({
+
+    // el:'#app',
+
+    router, //注册注入给Vue添加路由功能并且让每个组件内部都有两个对象可以拿到 $router $route
+
+    render: h => h(App) //  1、注册组件App   2、使用组件   3、渲染组件
+
+    // components:{
+
+    //   App
+
+    // },
+
+    // template:'<App/>'   //
+}).$mount('#app')
+```
+
+展示
+
+```js
+1, 在App.vue中添加
+
+<router-view></router-view>
+
+2. 在Header.vue中修改
+
+<!-- <a href="###"></a> -->
+
+<router-link to="/register" class="register">免费注册</router-link>
+
+<!-- <a href="###" ></a> -->
+
+新建pages文件夹, 
+
+创建Home, 
+
+新建router文件夹:index.js   
+
+引入注入到main.js; //注册注入给Vue添加路由功能并且让每个组件内部都有两个对象可以拿到 $router $route
+
+改进方案:
+
+在router 里面添加routes.js; 进行模块化
+
+写一个组件标签, 就相当于创建一个组件对象
+```
+
+
 
 ## 10、配置路由在对应点击切换路由组件的位置，替换路由链接	
+**整理/更新位置**
+
 ​	声明式导航和编程式导航
 
 ```
@@ -3882,7 +4239,7 @@ async deleteAll(){
 
 ## 71、	注册：
 
-	
+
 		静态组件
 		api
 		store
@@ -4172,23 +4529,215 @@ async logout(){
 //测试退出功能
 ```
 
+## 总结:
+
+只要是统计数据就想到reduce
+
+Header/router标签 , to到购物车组件 , 就直接跳转到购物车
+
+动态数据的展示就是页面在读取数据
+
+Vue
+
+- 静态页面
+  - 拆分组件
+  - 组装组件 : 定义 注册 使用
+  - 渲染组件
+- 动态页面
+  - 动态数据的展示
+    - 请求数据
+    - 获取数据
+    - 展示数据
+  - 用户交互    
 
 
-74、	携带token去进行后续操作
 
-	userTempId和token的区别
-	
-		userTempId  未登录状态下的用户身份识别标识
-	
-		token       登录状态下的用户身份识别标识 
-	
-		两个都存在的话，后台会合并临时id对应的信息到token对应的信息上
+# 0821 day10
+
+## 74、	携带token去进行后续操作
+
+```js
+userTempId和token的区别
+
+	userTempId  未登录状态下的用户身份识别标识
+
+	token       登录状态下的用户身份识别标识 
+
+	两个都存在的话，后台会合并临时id对应的信息到token对应的信息上
+序列化:数据库的数据序列化成JSON数据
+第一次 userTempId
+第二次 第一次保存的userTempId 转移到第二张表,以token为标准
+token带到每次请求的请求头中
+
+Ajax.js
+config{
+//把登录后的标识也添加到请求头当中
+let token = store.state.user.userInfo.token
+if(token){
+    config.headers.token = token
+    }
+}
+/*未登录状态添加商品到购物车,进入购物车,现在是在未登录状态加的,登录再进入购物车,无论登录前还是登录后的购物车商品都会到购物车里
+登录前是userTmpId,登录后是token为标准
+这是新技术,面试的时候有机会可以说说
+*/
+代码/静态组件/订单与支付相关组件放到pages里面
+router/routes.js
+配置trade的路由,并且引入
+import Trade from '@/pages/Trade'
+export defalut[
+    {
+    path:'/trade',
+    component:Trade
+    }
+]
+
+shopcart/index.vue
+c=sumbtn router-link to="/trade"
+到结算页面
+
+api/index.js
+//请求创建订单交易数据,api文档-获取订单交易页信息-10.1
+/api/order/auth/trade  get
+export const reqTradeInfo = ()=>{
+    return ajax({
+        url:'/order/auth/trade',
+        method:'get'
+    })
+}
+
+store/建trade.js
+引入api里面的reqTradeInfo
+随便复制一个文件,清空内容
+const state = {
+    tradeInfo:{}
+}
+const mutations = {
+    RECEIVETRADEINFO(state,tradeInfo){
+        state.tradeInfo =tradeInfo
+    }
+}
+const actions ={
+    async getTradeInfo({commit}){
+        const result = await reqTradeInfo()
+        if(result.code ===200){
+           commit('RECEIVETRADEINFO',result.data)
+           }
+    }
+}
+
+//发请求
+Trade/index.vue
+dxport default{
+    mounted(){
+		this.getTradeInfo()
+    }
+    methods:{
+		getTradeInfo(){
+        this.$store.dispatch('getTradeInfo')
+      },
+          //切换默认地址
+         changeDefault(address){
+        this.userAddressList.forEach(item => item.isDefault = '0')
+        address.isDefault = '1'
+      }
+    }
+	computed:{
+        //拿总的数据
+        ...mapState({
+            tradeInfo: state =>state.trade.tradeInfo})
+        detailArrayList(){
+            return this.tradeInfo.detailArrayList || []
+        },
+         userAddressList(){
+            return this.tradeInfo.userAddressList || []
+            } //看vue-trade组件
+    }
+}
+//看vux数据
+
+//展示数据
+Trade/index.vue
+收件人信息下面的两个div删除,v-for="address in userAddressList" :key="address.id"
+c=username c=selected设置动态的
+<span class="username" :class="{selected : address.isDefault === '1'}">{{address.consignee}}</span>
+
+下面的三个span
+ <p @click="changeDefault(address)">
+          <span class="s1">{{address.userAddress}}</span>
+          <span class="s2">{{address.phoneNum}}</span>
+          <span class="s3" v-if="address.isDefault === '1'">默认地址</span>
+</p>
+
+//看页面是否展示
+
+img :src
+p标签{{goods.skuName}}
+h3
+有货
+c=detail
+<ul class="list clearFix" v-for="(goods, index) in detailArrayList" :key="goods.skuId">
+          <li>
+            <img :src="goods.imgUrl" alt="" style="width:100px;height:80px">
+          </li>
+          <li>
+            <p>
+              {{goods.skuName}}</p>
+            <h4>7天无理由退货</h4>
+          </li>
+          <li>
+            <h3>￥{{goods.orderPrice}}</h3>
+          </li>
+          <li>X{{goods.skuNum}}</li>
+          <li>有货</li>
+</ul>
+
+看vue组件
+
+买家留言标签
+<textarea placeholder="建议留言前先与商家沟通确认" class="remarks-cont" v-model="message"></textarea>
+
+data(){
+    return{
+        message:''
+    }
+}
+件商品标签
+<b><i>{{tradeInfo.totalNum}}</i>件商品，总商品金额</b>
+    
+应付金额标签
+ <span>¥{{tradeInfo.totalAmount}}</span>
+
+寄送的信息跟上面选择的信息对应的
+computed:{
+    defaultAddress(){
+       return this.userAddressList.find(item => item.isDefault === '1')||{}
+    }
+}
+寄送至标签
+<span>{{defaultAddress.userAddress}}</span>
+//看defaultAddress数据
+收货人标签
+<span>{{defaultAddress.consignee}}</span>
+电话的span
+ <span>{{defaultAddress.phoneNum}}</span>
+//看页面收货人是否显示正常
+
+//收件人 点击切换,添加点击事件,排他思想
+收件人信息标签
+v-for="(address, index) in userAddressList" 
+
+p标签 @click="chanegDefault(address)"
+methods:{
+    changeDefault(address){
+        this.userAddressList.forEach(item => item.isDefault = '0')
+        address.isDefault = '1'
+    }
+}
+//看下面收货人是否同步
+```
 
 
-
-
-
-day10
 
 
 登录注册完成再去做订单交易的流程
@@ -4199,7 +4748,71 @@ day10
 点击立即支付会弹出二维码
 
 ```js
+提交订单会返回订单编号
+Trade/index.vue
+c=sub clearFix,添加a标签,单击事件
+<a href="javascript:;" class="subBtn" @click="submitOrder">提交订单
+</a>
 
+methods:{
+   async submitOrder(){
+       //先收集请求需要的参数
+       let tradeNo = this.tradeInfo.tradeNo
+       let tradeInfo= {
+           consignee: this.defaultAddress.consignee,   //用户名
+            consigneeTel: this.defaultAddress.phoneNum,   //用户联系电话
+            deliveryAddress: this.defaultAddress.userAddress, //用户地址
+            paymentWay: "ONLINE",                    //支付方式
+            orderComment: this.message,              //用户的留言
+            orderDetailList: this.detailArrayList    //交易信息当中的商品详情
+       }
+       
+        //发请求,创建订单,返回订单编号,这样做是不用vux保存数据,只要是$,就是vm上面的属性或者方法
+       const result = await this.$API.reqSubmitOrder(tradeNo,tradeInfo)
+        //我们携带这个订单编号然后跳转到支付页面
+        if(result.code ===200){
+            //返回订单编号
+            
+            //携带数据跳转支付页面
+            alert('订单创建成功,自动跳转支付页面')
+             //先到router.routes.js配置路由
+ 			this.$router.push('/pay?orderNo='+result.data)
+           
+        }else{
+            alert('创建订单失败')
+        }
+    }
+}
+
+
+//vue-resource是vue的插件,专门用来发请求的
+//Vue.use(vueResource),在原型中添加了http这个方法,用法跟axios完全一致
+
+
+api/index.js
+//请求创建提交订单(tradeNo:交易编号,在trade页面,)
+tradeNoquery参数传的,得有请求体参数
+orderId:订单编号
+export const reqSubmitOrder = (tradeNo,tradeInfo) => {
+    return Ajax({
+        url:`/order/auth/submitOrder?tradeNo=${tradeNo}`
+        method:'post',
+        //请求体
+        data:tradeInfo
+    })
+}
+
+
+//直接发请求
+main.js
+引入所有的API,所有的请求函数
+import * as API from '@/api'
+$API放到Vue的原型,目的并不是以它作为事件总线,因为它没法使用$on和$emit,我们只是为了让所有的组件能用这个API
+ Vue.prototype.$API = API  
+//测试的api不要了
+
+
+//看订单页面,点击提交订单是否发请求,成功就会到支付页面
 ```
 
 
@@ -4207,16 +4820,55 @@ day10
 
 75、	
 
-	点击购物车结算会去到订单交易页面   去到之后需要发请求获取创建订单所需要的的交易信息，完成页面展示
-	
-	静态组件显示
-	api
-	store
-	组件发请求
-	获取数据
-	组件展示数据
-	完成交互
+```js
+点击购物车结算会去到订单交易页面   去到之后需要发请求获取创建订单所需要的的交易信息，完成页面展示
 
+静态组件显示
+api
+store
+组件发请求
+获取数据
+组件展示数据
+完成交互
+
+Pay/index.vue
+4小时
+<em>{{$route.query.orderNo}}</em>
+
+api/index.js
+//获取支付页面的支付信息
+export const reqPayInfo=(orderId)=>{
+    return Ajax({
+        url:`/payment/weixin/createNative/${orderId}`,
+        method:'get'
+    })
+}
+
+Pay/index.vue
+export default{
+    data(){
+        return{
+            payInfo:{}
+        }
+    }
+    mounted(){
+        this.getPayInfo()
+    },
+    mehtods:{
+        async getPayInfo(){
+            const result = await this.$API.reqPayInfo(this.$route.query.orderNo)//orderNo就是orderId
+            if(result.code === 200){
+                this.payInfo=result.data
+            }
+        }
+    }
+}
+//vue-Pay组件-totalFee
+应付金额
+<em class="orange money">￥{{payInfo.totalFee}}</em>
+
+看路径中query参数
+```
 
 76、   点击创建订单页面提交订单    需要先发请求 提交订单信息   成功返回订单编号   把订单编号携带跳转路由去到订单支付页面
 
@@ -4251,6 +4903,136 @@ day10
 		6、如果点击支付失败，那么需要提示信息 清除定时器  关闭提示框 关闭也要去手动关闭
 			（需要放在messageBox的beforeClose回调当中去，判断 然后手动关闭）
 		7、支付成功才能到支付成功页面，那么我们都要去花钱，所以把支付功能简化，直接点击就能跳
+	
+
+```js
+	//看element-ui官网-MessageBox弹框
+	//我们用的是HTML片段
+//看组件内容
+//安装element-ui -S , babel-plugin-component -D
+//babel.config.js专门的配置文件
+
+main.js
+
+//引入element-ui里面的messageBox(弹窗)和message(提示消息)
+
+//声明使用或注册
+
+//重启项目
+
+Pay/index.vue
+//点击立即支付的时候要弹出一个框,不能用router-link
+a标签,@click="pay"
+methods:{
+    pay(){
+        
+    }
+}
+//测试点击立即支付
+
+//看官网-Options-showClose
+pay(){
+    showClose改成false就没有×
+}
+showCancelButton
+...
+
+//先生成二维码图片的路径
+//vue组件里面多了一个main
+//安装node-qrcode,GitHub搜索node-qrcode,
+async pay(){
+    //生成二维码图片
+    try{
+        const imgUrl = await QRCode.toDataURL('this.payInfo.codeUrl')
+        console.log(imgUrl)
+    }catch(error){
+        //用法跟alert一样的
+        this.$messsage.error('生成二维码失败'+error.message)
+    }
+}
+//弹出一个消息框放到pay(){}里面
+//测试立即支付是否弹出二维码
+//用户支付之后,怎么知道用户支付成功了?向后台发请求要订单的支付状态,循环一直要,如果后台返回支付成功就让它自动跳到成功页面
+
+this.$alert(
+	
+)//函数的返回值也是promise
+//弹出消息同时循环的给后台发请求,获取该订单的支付状态数据,根据返回来的支付状态数据去决定要不要跳转到支付成功页面
+if(!this.timer){
+    this.timer=setInterval(async () => {
+        //每2秒发一次请求获取支付状态信息
+       const result = await this.$API.reqOrderStatus(this.payInfo.ordrId)
+       if(result.code === 200){
+           //支付成功
+           //清除定时器,跳转到支付成功页面,把当前的状态保存起来,以便用户点击我已成功支付的时候去判定
+           this.status = 200//看用户点击的时候是不是200
+           clearInterval(this.timer)//停止给定编号的定时器,并没有清空存储编号的变量,相当于把那个标志清除
+            this.timer = null
+           
+           //跳转过去之后手动关闭我们的弹出消息框
+           this.$msgbox.close()
+           this.$router.push('/paysuccess')
+           
+       }
+    },2000)
+}
+
+api/index.js
+//获取订单支付状态的信息
+export const reqOrderStatus = (orderId) => {
+    return Ajax({
+        url:``
+        method:'get'//get请求不发,默认是get
+    })
+}
+
+//测试支付一分钱路径有没有变/paysuccess
+
+
+this.$alert(
+	beforeClose:(action,instance,done)=>{
+    //关闭之前的回调,如果不写这个回调,无论点击什么按钮,消息框都会强制关闭
+    //如果写了这个回调,那么消息框的关闭由我们自己控制
+    if(action === 'confirm'){
+        //真实的支付环境
+        //if(this.status !== 200){
+          //  this.$message.warning('小伙子没支付,支付后自动跳转')
+      //  }
+        //测试环境
+        
+    }else if(action === 'cancel'){
+         this.$message.warning('请联系尚硅谷前台小姐姐处理')
+        //停止定时器
+        clearInterval(this.timer)//停止给定编号的定时器,并没有清空存储编号的变量,相当于把那个标志清除
+            this.timer = null
+        done()//手动关系消息框
+    }
+}
+)
+//测试我已成功支付是否关闭消息框,点击支付遇到问题有bug
+//弹出一个消息框
+this.$alert().then().catch()
+
+router/routes.js
+配center的路由
+//点击查看订单到我的订单页面
+```
+
+## 总结:
+
+1.生成二维码
+
+2.弹出一个消息框去展示二维码图片
+
+3.弹出消息同时循环的给后台请求,获取该订单的支付方状态数据
+
+4.点击按钮之后的处理和第三部产生联系
+
+![image-20200821164138808](C:\Users\zengxiaolong\AppData\Roaming\Typora\typora-user-images\image-20200821164138808.png)
+
+
+
+
 
 79、支付成功后我们可以跳转到支付成功页面
 ​	静态组件

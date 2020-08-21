@@ -90,9 +90,39 @@ export const reqLogout = () => {
     method: "get",
   });
 };
-export const reqTradeInfo = ()=>{
-  return ajax({
-      url:'/order/auth/trade',
-      method:'get'
-  })
-}
+export const reqTradeInfo = () => {
+  return Ajax({
+    url: "/order/auth/trade",
+    method: "get",
+  });
+};
+export const reqSubmitOrder = (tradeNo, tradeInfo) => {
+  return Ajax({
+    url: `/order/auth/submitOrder?tradeNo=${tradeNo}`,
+    method: "post",
+    //请求体
+    data: tradeInfo,
+  });
+};
+
+//获取支付页面的支付信息
+export const reqPayInfo = (orderId) => {
+  return Ajax({
+    url: `/payment/weixin/createNative/${orderId}`,
+    method: "get",
+  });
+};
+//获取订单支付状态的信息
+export const reqOrderStatus = (orderId) => {
+  return Ajax({
+    url: `/payment/weixin/queryPayStatus/${orderId}`,
+    method: "get", //get请求不写,默认是get
+  });
+};
+//获取订单支付状态的信息
+export const reqOrderStatus = (orderId) => {
+  return Ajax({
+    url: `/payment/weixin/queryPayStatus/${orderId}`,
+    method: "get", //get请求不写,默认是get
+  });
+};

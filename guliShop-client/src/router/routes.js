@@ -6,8 +6,13 @@ import Detail from "@/pages/Detail";
 import AddCartSuccess from '@/pages/AddCartSuccess'
 import ShopCart from '@/pages/ShopCart'
 import Trade from '@/pages/Trade'
+import Pay from '@/pages/Pay'
 export default [
   //专门配置各种路由的地方
+  {
+    path:'/pay',
+    component:Pay
+  },
   {
     path:'/trade',
     component:Trade

@@ -4628,7 +4628,7 @@ const actions ={
 
 //发请求
 Trade/index.vue
-dxport default{
+export default{
     mounted(){
 		this.getTradeInfo()
     }
@@ -4660,6 +4660,7 @@ dxport default{
 Trade/index.vue
 收件人信息下面的两个div删除,v-for="address in userAddressList" :key="address.id"
 c=username c=selected设置动态的
+
 <span class="username" :class="{selected : address.isDefault === '1'}">{{address.consignee}}</span>
 
 下面的三个span
@@ -4702,10 +4703,10 @@ data(){
         message:''
     }
 }
-件商品标签
+件商品
 <b><i>{{tradeInfo.totalNum}}</i>件商品，总商品金额</b>
     
-应付金额标签
+应付金额
  <span>¥{{tradeInfo.totalAmount}}</span>
 
 寄送的信息跟上面选择的信息对应的
@@ -4714,17 +4715,17 @@ computed:{
        return this.userAddressList.find(item => item.isDefault === '1')||{}
     }
 }
-寄送至标签
+寄送至
 <span>{{defaultAddress.userAddress}}</span>
 //看defaultAddress数据
-收货人标签
+收货人
 <span>{{defaultAddress.consignee}}</span>
 电话的span
  <span>{{defaultAddress.phoneNum}}</span>
 //看页面收货人是否显示正常
 
 //收件人 点击切换,添加点击事件,排他思想
-收件人信息标签
+收件人信息
 v-for="(address, index) in userAddressList" 
 
 p标签 @click="chanegDefault(address)"
@@ -4795,7 +4796,7 @@ tradeNoquery参数传的,得有请求体参数
 orderId:订单编号
 export const reqSubmitOrder = (tradeNo,tradeInfo) => {
     return Ajax({
-        url:`/order/auth/submitOrder?tradeNo=${tradeNo}`
+        url:`/order/auth/submitOrder?tradeNo=${tradeNo}`,
         method:'post',
         //请求体
         data:tradeInfo
@@ -4810,6 +4811,7 @@ import * as API from '@/api'
 $API放到Vue的原型,目的并不是以它作为事件总线,因为它没法使用$on和$emit,我们只是为了让所有的组件能用这个API
  Vue.prototype.$API = API  
 //测试的api不要了
+
 
 
 //看订单页面,点击提交订单是否发请求,成功就会到支付页面
@@ -4833,6 +4835,7 @@ store
 
 Pay/index.vue
 4小时
+订单编号动态生成
 <em>{{$route.query.orderNo}}</em>
 
 api/index.js
@@ -4848,13 +4851,14 @@ Pay/index.vue
 export default{
     data(){
         return{
-            payInfo:{}
+            payInfo:{},
+             status: "",
         }
     }
     mounted(){
         this.getPayInfo()
     },
-    mehtods:{
+    methods:{
         async getPayInfo(){
             const result = await this.$API.reqPayInfo(this.$route.query.orderNo)//orderNo就是orderId
             if(result.code === 200){
@@ -4863,7 +4867,7 @@ export default{
         }
     }
 }
-//vue-Pay组件-totalFee
+//vue-Pay组件-totalFee,显示"totalFee:0.01"就正常了
 应付金额
 <em class="orange money">￥{{payInfo.totalFee}}</em>
 
@@ -4903,51 +4907,81 @@ export default{
 		6、如果点击支付失败，那么需要提示信息 清除定时器  关闭提示框 关闭也要去手动关闭
 			（需要放在messageBox的beforeClose回调当中去，判断 然后手动关闭）
 		7、支付成功才能到支付成功页面，那么我们都要去花钱，所以把支付功能简化，直接点击就能跳
-	
+
 
 ```js
 	//看element-ui官网-MessageBox弹框
 	//我们用的是HTML片段
 //看组件内容
 //安装element-ui -S , babel-plugin-component -D
-//babel.config.js专门的配置文件
+//下载npm install --save qrcode
+//下好之后就会有babel.config.js,专门的配置文件
 
 main.js
 
 //引入element-ui里面的messageBox(弹窗)和message(提示消息)
+import { MessageBox, Message } from 'element-ui';
 
-//声明使用或注册
+// 声明使用或者注册
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+Vue.prototype.$message = Message;
 
 //重启项目
 
 Pay/index.vue
+引入import QRCode from "qrcode";
 //点击立即支付的时候要弹出一个框,不能用router-link
 a标签,@click="pay"
+ <a href="javascript:;" class="btn" @click="pay">立即支付</a>
+
 methods:{
-    pay(){
-        
-    }
+  pay(){
+      //弹出一个消息框
+       this.$alert('<strong>这是 <i>HTML</i> 片段</strong>', 'HTML 片段', {
+          dangerouslyUseHTMLString: true
+        });
+  }
 }
+
+//babel.config.js
+//按需引入
+module.eports=[
+     "plugins": [
+    [
+      "component",
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "theme-chalk"
+      }
+    ]
+  ]
+]
+
 //测试点击立即支付
 
-//看官网-Options-showClose
+//看官网-MessageBox弹框-Options-showClose
 pay(){
-    showClose改成false就没有×
+      dangerouslyUseHTMLString: true,
+      showClose: false,
+      showCancelButton: true,
+      cancelButtonText: "支付遇到问题",
+      confirmButtonText: "我已成功支付",
+      center: true,
 }
-showCancelButton
-...
+
 
 //先生成二维码图片的路径
 //vue组件里面多了一个main
 //安装node-qrcode,GitHub搜索node-qrcode,
 async pay(){
-    //生成二维码图片
+    //1.生成二维码图片
     try{
-        const imgUrl = await QRCode.toDataURL('this.payInfo.codeUrl')
+        const imgUrl = await QRCode.toDataURL(this.payInfo.codeUrl)
         console.log(imgUrl)
     }catch(error){
         //用法跟alert一样的
-        this.$messsage.error('生成二维码失败'+error.message)
+        this.$message.error('生成二维码失败'+error.message)
     }
 }
 //弹出一个消息框放到pay(){}里面
@@ -4958,10 +4992,11 @@ this.$alert(
 	
 )//函数的返回值也是promise
 //弹出消息同时循环的给后台发请求,获取该订单的支付状态数据,根据返回来的支付状态数据去决定要不要跳转到支付成功页面
-if(!this.timer){
-    this.timer=setInterval(async () => {
+try{
+    if(!this.timer){
+        this.timer=setInterval(async () => {
         //每2秒发一次请求获取支付状态信息
-       const result = await this.$API.reqOrderStatus(this.payInfo.ordrId)
+       const result = await this.$API.reqOrderStatus(this.payInfo.orderId)
        if(result.code === 200){
            //支付成功
            //清除定时器,跳转到支付成功页面,把当前的状态保存起来,以便用户点击我已成功支付的时候去判定
@@ -4973,23 +5008,40 @@ if(!this.timer){
            this.$msgbox.close()
            this.$router.push('/paysuccess')
            
-       }
-    },2000)
+           }
+        },2000)
+    }
 }
-
+    
 api/index.js
 //获取订单支付状态的信息
 export const reqOrderStatus = (orderId) => {
     return Ajax({
-        url:``
-        method:'get'//get请求不发,默认是get
+        url:`/payment/weixin/queryPayStatus/${orderId}`,
+        method:'get'//get请求不写,默认是get
     })
 }
 
+Pay/index.vue
+try{
+async pay(){
+    //2.弹出一个消息框
+     this.$alert(`<img src="${imgUrl}" />`, "请使用微信扫码支付",{
+        dangerouslyUseHTMLString: true,
+        showClose: false,
+        showCancelButton: true,
+        cancelButtonText: "支付遇到问题",
+        confirmButtonText: "我已成功支付",
+        center: true,
+      });
+    }
+}
 //测试支付一分钱路径有没有变/paysuccess
 
-
+Pay/index.vue
+try{
 this.$alert(
+    //4.点击按钮之后的处理及和第三步产生联系
 	beforeClose:(action,instance,done)=>{
     //关闭之前的回调,如果不写这个回调,无论点击什么按钮,消息框都会强制关闭
     //如果写了这个回调,那么消息框的关闭由我们自己控制
@@ -4998,23 +5050,34 @@ this.$alert(
         //if(this.status !== 200){
           //  this.$message.warning('小伙子没支付,支付后自动跳转')
       //  }
-        //测试环境
         
+        //测试环境
+        clearInterval(this.timer); //clearInterval清除定时器，停止给定编号的定时器，并没有清空存储编号的变量
+          this.timer = null;
+          done();
+          //跳转过去之后手动关闭我们的弹出消息框
+          this.$router.push("/paysuccess");
     }else if(action === 'cancel'){
          this.$message.warning('请联系尚硅谷前台小姐姐处理')
         //停止定时器
         clearInterval(this.timer)//停止给定编号的定时器,并没有清空存储编号的变量,相当于把那个标志清除
             this.timer = null
-        done()//手动关系消息框
+        done()//手动关闭消息框
     }
+})
 }
-)
-//测试我已成功支付是否关闭消息框,点击支付遇到问题有bug
+//测试"我已成功支付"是否关闭消息框,点击支付遇到问题有bug
 //弹出一个消息框
-this.$alert().then().catch()
+this.$alert().then(() => {}).catch(() => {})//函数的返回值也是promise
 
 router/routes.js
-配center的路由
+//配center的路由并且引入
+ {
+    path:'/center',
+    component:Center
+  },
+import Center from '@/pages/Center'
+    
 //点击查看订单到我的订单页面
 ```
 

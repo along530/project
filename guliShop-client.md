@@ -2140,6 +2140,7 @@ export const reqFloorList = () => {
 在 store 中的 home.js 中创建 bannerList 和 floorList 数据以及发送请求的函数
 
 ```js
+src/store
 //引入请求moke接口的函数
 import { reqBannerList, reqFloorList } from "@/api";
 //初始化需要请求的数据
@@ -2173,6 +2174,32 @@ const actions = {
     }
   },
 };
+```
+
+在 ListContainer 组件中分发 getBannerList 事件
+
+```js
+mounted() {
+    this.$store.dispatch("getBannerList");
+  },
+```
+
+从 vuex 中获取 bannerList 数据
+
+```js
+computed: {
+    ...mapState({
+      bannerList: (state) => state.home.bannerList,
+    }),
+  },
+```
+
+在结构中使用动态数据
+
+```js
+<div class="swiper-slide" v-for="banner in bannerList" :key="banner.id">
+  <img :src="banner.imgUrl" />
+</div>
 ```
 
 
@@ -2668,8 +2695,8 @@ import "swiper/css/swiper.css";
 
 **总结**:抽取公共组件的时候 ,第一拿html , 第二拿js , 第三, 定义,注册 ,第四 , 使用 ,拿数据
 
-45、查看数据的时候应该怎么去查看
-	看组件没有数据  接着看vuex没有数据   然后看network请求状态
+## 45、查看数据的时候应该怎么去查看
+​	看组件没有数据  接着看vuex没有数据   然后看network请求状态
 
 
 //到此  首页逻辑就算告一段落  下面开始就是搜索页
@@ -2695,10 +2722,8 @@ pages/Search
       
 ```
 
-
-
-47、search接口测试和编写请求函数 （参数按照文档的给定）
-	参考接口文档去做
+## 47、search接口测试和编写请求函数 （参数按照文档的给定）
+​	参考接口文档去做
 
 **src/api/index.js**
 
@@ -2720,7 +2745,7 @@ searchParams是vue组件传过来的
 
 F12打开,去首页,main里面已经引入了api/index.js , 查看是否发送请求 , 如果报201 , 就是请求的参数问题 , 这里最少要传一个空对象`reqGoodsListInfo({})`
 
-**store里面建search.js** 
+**store/建search.js** 
 
 ```js
 import {reqGoodsListInfo} from '@/api'
@@ -2768,8 +2793,8 @@ dispatch想要传递多个必须放在对象里面
 
 ​                 
 
-48、search模块vuex编码
-	编码和前面的类似  每写一步就测试一步
+## 48、search模块vuex编码
+​	编码和前面的类似  每写一步就测试一步
 
 ```js
 src/api
@@ -2839,12 +2864,10 @@ mounted() {
     },
 ```
 
-
-
-49、搜索条件参数的理解和初始data收集参数准备
-	传递参数对象，至少得传递一个没有属性的对象
-	搜索参数是怎么组成的，参考文档
-	在Search组件当中data设置初始参数的对象（因为不管怎么样搜索必须要一个初始的参数，没有就没办法）
+## 49、搜索条件参数的理解和初始data收集参数准备
+​	传递参数对象，至少得传递一个没有属性的对象
+​	搜索参数是怎么组成的，参考文档
+​	在Search组件当中data设置初始参数的对象（因为不管怎么样搜索必须要一个初始的参数，没有就没办法）
 
 **Search/index.vue**
 
@@ -2896,7 +2919,7 @@ computed:{
     //getters是为了防止a.b.c
 ```
 
-50、search组件动态显示（先不搜索，获取数据去动态展示）
+## 50、search组件动态显示（先不搜索，获取数据去动态展示）
 
 **Search/SearchSelector.vue**
 
@@ -2981,7 +3004,7 @@ methods:{
 
 
 
-51、根据分类和用户点击的关键字进行搜索，解决在search组件内部再进行搜索的bug
+## 51、根据分类和用户点击的关键字进行搜索，解决在search组件内部再进行搜索的bug
 
 - 用户可能从首页搜索 , 带了参数了 , 用户在搜索的时候,categoryName就有值了 , 这是初始化参数
 - 用户很可能从输入框搜索 , 也可能点击类别搜索 , 在搜索页面都要把params和query拿到
@@ -3011,10 +3034,10 @@ beforeMount(){
 
 
 
-52、动态显示和删除选中的搜索条件发送请求
-	判断参数内部是否存在categoryName  存在就显示
-	判断参数内部是否存在keyword 存在就显示
-	点击事件，如果删除就把参数对应的数据清除，顺便发送新的请求
+## 52、动态显示和删除选中的搜索条件发送请求
+​	判断参数内部是否存在categoryName  存在就显示
+​	判断参数内部是否存在keyword 存在就显示
+​	点击事件，如果删除就把参数对应的数据清除，顺便发送新的请求
 
 **Search/index.vue**
 
@@ -3064,18 +3087,50 @@ methods:{
 
 
 
-54、解决删除关键字后，输入框没有更新输入的bug
-	组件间通信，删除关键字后通知header组件，全局事件总线的使用
+## 54、解决删除关键字后，输入框没有更新输入的bug
+​	组件间通信，删除关键字后通知header组件，全局事件总线的使用
+
+在 main.js 中创建全局事件总线
 
 ```js
-//老师没讲
+new Vue({
+  beforeCreate() {
+    Vue.prototype.$bus = this; //配置全局事件总线
+    //全局事件总线本质就是一个对象
+    //满足条件
+    //1、所有组件对象都可以看到这个对象(决定了这个对象必须是在Vue的原型当中)
+    //2、这个对象必须能够使用$on和$emit(决定了这个对象必须是能够调用到Vue原型$on和$emit)
+    //最终我们选择了vm作为时间总线是最简单的,因为本来我们就要有一个vm对象,直接拿来作为总线就好了
+  },
+});
+```
+
+在 Header 组件中绑定 removeKeyword 事件监听
+
+```js
+mounted() {
+    // 通过全局总线绑定removeKeyword事件监听
+    this.$bus.$on("removeKeyword", () => {
+      this.keyword = ""; // 置空我们的搜索关键字
+    });
+  },
+```
+
+在 Search 组件中分发事件
+
+```js
+// 通知Header组件也删除输入的关键字
+// 在Search, 通过事件总线对象来分发事件
+removeKeyword(){
+  this.$bus.$emit("removeKeyword");
+}
 ```
 
 
 
 
 
-55、根据品牌搜索（设置和删除）
+## 55、根据品牌搜索（设置和删除）
 ​	给对应品牌添加点击事件
 ​	点击的时候需要给父组件search传递品牌的参数  参数结构参考接口文档
 ​	子向父通信
@@ -3131,7 +3186,7 @@ searchForTrademark(tradmark){
 
 
 
-56、根据属性搜索（设置和删除）
+## 56、根据属性搜索（设置和删除）
 ​	给对应的属性值添加点击事件
 ​	点击的时候需要给父组件search传递属性值参数  参数结构参考接口文档
 ​	使用组件间通信	
@@ -3187,10 +3242,10 @@ class"with-x"/<i></i>
 
 # day06 删除面包屑清空关键字 排序的图标 点击切换排序 自定义分页组件 详情页
 
-57、解决在搜索页多次跳转后不能直接返回home的问题
-	查看之前书写的所有跳转路由
-	如果是搜索页往搜索页去跳转使用replace
-	如果是home页往搜索页去跳转使用push
+## 57、解决在搜索页多次跳转后不能直接返回home的问题
+​	查看之前书写的所有跳转路由
+​	如果是搜索页往搜索页去跳转使用replace
+​	如果是home页往搜索页去跳转使用push
 
 **Header/index.vue**
 
@@ -3257,7 +3312,7 @@ methods:{
 
 
 
-58、getters的用法简化searchSelector中数据的获取  mapGetters使用
+## 58、getters的用法简化searchSelector中数据的获取  mapGetters使用
 
 ```js
 **stroe/search.js**
@@ -3276,7 +3331,7 @@ const getters = {
 
 
 
-59、响应式对象数据属性的添加和删除 ( 讲的源码 )
+## 59、响应式对象数据属性的添加和删除 ( 讲的源码 )
 
 	对象当中的属性数据更改会导致页面更改，响应式数据
 	
@@ -3296,13 +3351,27 @@ const getters = {
 
 
 
-60、排序数据的分析4种情况   
+## 60、排序数据的分析4种情况   
 ​	orderFlag:orderType
 
-61、动态确定排序项和排序方式
-	
+排序的类型:desc 降序 asc 升序
+1 代表综合排序,2 代表价格排序
+4 中排序情况 1.综合升序 2.综合降序 3.价格升序 4.价格降序
 
-	哪个排序项选中并且有背景色（根据数据中的orderFlag决定active的类名）
+## 61、动态确定排序项和排序方式
+
+```js
+search/index.vue
+哪个排序项选中并且有背景色（根据数据中的orderFlag决定active的类名）
+<ul class="sui-nav">
+  <li :class="{ active: searchParams.order.split(':')[0] === '1' }">
+    <a href="#">综合</a>
+  </li>
+  <li :class="{ active: searchParams.order.split(':')[0] === '2' }">
+    <a href="#">价格⬆</a>
+  </li>
+</ul>
+```
 
 
 	iconfont的使用
@@ -3575,7 +3644,7 @@ props:{
 ```
 
 
-```vue
+```js
 	动态显示页码
 		
 		每一个button都要考虑什么时候显示  还有什么时候是选中状态 
@@ -3894,7 +3963,7 @@ dd留一个,遍历,class="active"
 ## 点击小图同步上面的大图
 
 ```js
-
+Detail/index.vue
 交互
 	图片列表的点击切换样式
 	图片列表点击大图要跟着切换  组件通信index下标Detail/index.vue
@@ -4289,6 +4358,7 @@ day08
 ## 69、购物车shopCart静态组件
 
 ```js
+ShopCart/index.vue
 调整css让各个项目对齐    删除第三项  
 width的百分比 
 cart-list-con1 %15  
@@ -4504,7 +4574,8 @@ async是异步 , 函数返回值是promise , sync是同步 , 成功或失败看�
 ## 单选 多选 全选 统计数量 统计价格
 
 ```js
-	交互：
+shopcart/index.vue
+交互：
 		更新购物车数量数据
 
 		更新购物车选中状态数据

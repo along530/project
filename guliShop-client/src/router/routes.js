@@ -7,8 +7,18 @@ import AddCartSuccess from '@/pages/AddCartSuccess'
 import ShopCart from '@/pages/ShopCart'
 import Trade from '@/pages/Trade'
 import Pay from '@/pages/Pay'
+import PaySuccess from '@/pages/PaySuccess'
+import Center from '@/pages/Center'
 export default [
   //专门配置各种路由的地方
+  {
+    path:'/center',
+    component:Center
+  },
+  {
+    path:'/paysuccess',
+    component:PaySuccess
+  },
   {
     path:'/pay',
     component:Pay

@@ -158,7 +158,33 @@ export default {
           cancelButtonText: "支付遇到问题",
           confirmButtonText: "我已成功支付",
           center: true,
-        });
+           //第四步.点击按钮之后的处理及和第三步产生联系
+           beforeClose: (action, instance, done) => {
+            //关闭之前回调
+            //如果不写这个回调，那么无论点击什么按钮，消息盒子都会强制关闭
+            //如果写了这个回调，那么消息盒子的关闭由我们自己控制
+            if (action === "confirm") {
+              // 真实的环境
+              // if(this.status !== 200){
+              //   this.$message.warning('小伙子没支付，支付后自动跳转')
+              // }
+
+              //测试环境
+              clearInterval(this.timer); //clearInterval清除定时器，停止给定编号的定时器，并没有清空存储编号的变量
+              this.timer = null;
+              done();
+              //跳转过去之后手动关闭我们的弹出消息框
+              this.$router.push("/paysuccess");
+            } else if (action === "cancel") {
+              this.$message.warning("请联系尚硅谷前台小姐姐处理");
+              clearInterval(this.timer); //clearInterval清除定时器，停止给定编号的定时器，并没有清空存储编号的变量
+              this.timer = null;
+              done(); //让我们手动关闭消息盒子
+            }
+          },
+        }).then(() => {}).catch(() => {}); //函数的返回值也是promise
+       
+        //3.弹出消息同时循环的给后台发请求,获取该订单的支付状态数据,根据返回来的支付状态数据去决定要不要跳转到支付成功页面
         if (!this.timer) {
           this.timer = setInterval(async () => {
             //每2秒发一次请求获取支付状态信息

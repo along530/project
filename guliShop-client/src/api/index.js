@@ -120,9 +120,9 @@ export const reqOrderStatus = (orderId) => {
   });
 };
 //获取订单支付状态的信息
-export const reqOrderStatus = (orderId) => {
-  return Ajax({
-    url: `/payment/weixin/queryPayStatus/${orderId}`,
-    method: "get", //get请求不写,默认是get
-  });
-};
+// export const reqOrderStatus = (orderId) => {
+//   return Ajax({
+//     url: `/payment/weixin/queryPayStatus/${orderId}`,
+//     method: "get", //get请求不写,默认是get
+//   });
+// };

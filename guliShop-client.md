@@ -662,13 +662,160 @@ new Vue({
 
 ​	声明式导航和编程式导航
 
+创建 pages 路由组件文件夹,在里面创建 Home,Login,Register,Search 路由组件
+npm i vue-router -S 下载 router 插件包
+在 router 文件夹下创建 routes.js,模块化方便管理
+
 ```
 声明式导航(router-link)和编程式导航(push repalce)
+import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Search from "@/pages/Search";
+
+export default [
+  {
+    path: "/home",
+    component: Home,
+  },
+  {
+    path: "/login",
+    component: Login,
+  },
+  {
+    path: "/register",
+    component: Register,
+  },
+  {
+    path: "/search",
+    component: Search,
+  },
+  {
+    //重定向路由
+    path: "/",
+    redirect: "/home",
+  },
+];
 ```
 
-11、登录注册不需要Footer,通过路由meta配置解决
-	从route当中可以获取到path判断可以解决但是麻烦
-	
+在 router/建 index.js 配置文件
+
+```js
+import Vue from "vue";
+import VueRouter from "vue-router";
+import routes from "@/router/routes";
+Vue.use(VueRouter);
+
+const router = new VueRouter({
+  routes,
+});
+
+export default router;
+```
+
+在 main.js 中注入 router
+
+```js
+import Vue from "vue";
+import App from "@/App";
+import router from "@/router";
+Vue.config.productionTip = false;
+
+new Vue({
+  router, //注入router,给Vue添加路由功能并且让每个组件内部都有两个对象可以拿到:$router $route
+  render: (h) => h(App),
+}).$mount("#app");
+```
+
+将结构内对应的 a 标签替换为<router-link></router-link>
+
+```js
+<router-link to="/login">登录</router-link>
+<router-link class="register" to="/register">免费注册</router-link>
+<router-link class="logo" title="尚品汇" to="/home">
+  <img src="./images/logo.png" alt="" />
+</router-link>
+```
+
+每个 router-link 标签都会创建一个组件对象,使用过多会消耗更多内存,编程式导航可以解决
+编程式导航
+
+```
+<button @click="toSearch">搜索</button>
+
+methods: {
+    toSearch() {
+      this.$router.push('/search')
+    },
+  },
+```
+
+### 解决多次触发编程式导航 报错的问题
+
+```js
+const originPush = VueRouter.prototype.push; //保存原来的push函数 ，后面修改之后可以找到原来的
+const originReplace = VueRouter.prototype.replace;
+
+VueRouter.prototype.push = function(location, onResolved, onRejected) {
+  //调用push根本没有处理promise的回调，无论成功和失败
+  if (onResolved === undefined && onRejected === undefined) {
+    return originPush.call(this, location).catch(() => {});
+  } else {
+    //代表调用push的时候，传了处理promise的回调
+    return originPush.call(this, location, onResolved, onRejected);
+  }
+};
+
+VueRouter.prototype.replace = function(location, onResolved, onRejected) {
+  //调用push根本没有处理promise的回调，无论成功和失败
+  if (onResolved === undefined && onRejected === undefined) {
+    return originReplace.call(this, location).catch(() => {});
+  } else {
+    //代表调用push的时候，传了处理promise的回调
+    return originReplace.call(this, location, onResolved, onRejected);
+  }
+};
+```
+
+
+
+## 11、登录注册不需要Footer,通过路由meta配置解决
+​	从route当中可以获取到path判断可以解决但是麻烦
+
+```js
+<footer v-if="$route.path !== '/login' && $route.path !== '/register'"></footer>
+```
+
+meta 配置
+在路由配置对象中设置 meta 属性
+
+```js
+{
+    path: "/login",
+    component: Login,
+    meta: {
+      isHide:true  //要隐藏footer
+    },
+  },
+  {
+    path: "/register",
+    component: Register,
+    meta: {
+      isHide:true //要隐藏footer
+    },
+  },
+```
+
+在标签中使用 meta 配置
+
+```js
+<footer v-if="!$route.meta.isHide"></footer>
+
+```
+
+
+
+
 
 ## 12、路由传参相关 
 
@@ -711,6 +858,104 @@ new Vue({
 			可以: 可以将query或且params参数映射/转换成props传递给路由组件对象
 		实现: props: (route)=>({keyword1:route.params.keyword, keyword2: route.query.keyword })
 
+**路径后拼接传参**
+
+```js
+this.$router.push("/search?keyword=");
+```
+
+**对象传参**
+
+```js
+let location = {
+  path: "/search",
+};
+this.$router.push(location);
+```
+
+**传递 params 参数和 query 参数**
+
+**params 参数需要在路由配置路径中接收**
+
+```js
+{
+    path: "/search/:keyword",
+    component: Search,
+},
+```
+
+**指定 params 参数时不可以用 path 和 params 配置的组合,只能用 name 和 params 配置的组合**
+
+```js
+let location = {
+  // path: "/search",
+  name: "search",
+  params: {
+    keyword: this.keyword,
+  },
+  query: {
+    keyword: this.keyword.toUpperCase(),
+  },
+};
+this.$router.push(location);
+
+{
+    path: "/search/:keyword",
+    component: Search,
+    name: "search",
+  },
+```
+
+**解决 params 中数据是一个"", 无法跳转，路径出错问题**
+
+```js
+{
+    path: "/search/:keyword?",//?代表这个params参数可传可不传
+    component: Search,
+    name: "search",
+}
+
+let location = {
+        // path: "/search",
+        name: "search",
+        params: {
+          keyword: this.keyword || undefined,
+        },
+        query: {
+          keyword: this.keyword.toUpperCase(),
+        },
+      };
+      this.$router.push(location);
+```
+
+**路由组件传递 props 数据(简便使用)**
+
+```js
+ 1.
+props: true; //代表只是把params参数通过属性传递给相应的组件
+
+2.
+props: {
+  name: "jack";
+} //只能传递静态数据
+
+3.
+{
+    path: "/search/:keyword?",
+    component: Search,
+    name: "search",
+    props(route){ //route收集好参数的路由对象
+      //把传递过来的params参数和query参数一起映射为组件的属性
+      return{keyword:route.params.keyword,keyword2:route.query.keyword}
+    }
+},
+//接收使用
+export default {
+  name: "Search",
+  props: ["keyword", "keyword2"],
+};
+```
+
 
 
 # day02
@@ -724,6 +969,17 @@ new Vue({
 
 Home的静态页面就有了，接下来要去实现动态数据
 
+拆分 Home 的所有组件,实现主页的静态展示
+因为主页和搜索页都用到了 TypeNav 组件,所以将其放至 components 文件夹中,并且全局注册
+在 main.js 中配置
+
+```js
+import TypeNav from "@/components/TypeNav";
+Vue.component("TypeNav", TypeNav);
+```
+
+
+
 ## 14、**postman测试后台api接口，保存请求信息以便后期使用（参考接口文档）**
 ​	**postman的基本使用方法**
 
@@ -732,52 +988,58 @@ Home的静态页面就有了，接下来要去实现动态数据
 ## 15、前后台交互模块ajax模块，对axios的二次封装
 ​	获取数据离不开ajax，所以先把ajax工具搞定
 
-	src/ajax
-	配置基础路径和超时限制
-	    const instance = axios.create({
-	      baseURL: "/api", //配置基础路径
-	      timeout: 20000, //配置请求超时时间
-	    });
-		添加进度条信息  nprogress
-	//请求拦截器当中添加打开进度条的功能,config就是请求报文
-	instance.interceptors.request.use((config) => {
-	    NProgress.start();
-	    //处理config(请求报文)
-	    //添加额外的功能,使用进度条
-	    return config; //返回这个config , 请求继续发送,发送的报文信息就是新的config对象
-	});
-	
-		//返回的响应不再需要从data属性当中拿数据，而是响应就是我们要的数据
-	instance.interceptors.response.use(
-	  (response) => {
-	    NProgress.done();
-	    //3
-	    //默认返回的是response,也就是我们的响应报文信息,如果要拿到数据就通过response.data去获取
-	    //现在我们是在返回响应之前把响应直接改成了数据,以后拿数据就不需要.data了
-	    return response.data;
-	  },
-	  (error) => {
-	    //4
-	    alert("发送请求失败:" + error.message || "未知错误");
-	    //如果需要进一步处理这个错误,那么就返回一个失败的promise
-	    //new Error("请求失败")就是自定义错误信息
-	    // return Promise.reject(new Error("请求失败"));
-	    //如果不需要再去处理这个错误,那么就返回一个pending状态的promise(目的在于终止promise链)
-	    return new Promise(() => {});
-	  }
-	);
+```js
+src/建ajax
+配置基础路径和超时限制
+// 1、配置基础路径和超时限制
+import axios from "axios";
+//创建一个新的axios实例
+    const instance = axios.create({
+      baseURL: "/api", //配置基础路径
+      timeout: 20000, //配置请求超时时间
+    });
+//2.添加进度条信息  nprogress
+//请求拦截器当中添加打开进度条的功能,config就是请求报文
+instance.interceptors.request.use((config) => {
+    NProgress.start();
+    //处理config(请求报文)
+    //添加额外的功能,使用进度条
+    return config; //返回这个config , 请求继续发送,发送的报文信息就是新的config对象
+});
+
+//3.返回的响应不再需要从data属性当中拿数据，而是响应就是我们要的数据
+instance.interceptors.response.use(
+  (response) => {
+    NProgress.done();
+    //
+    //默认返回的是response,也就是我们的响应报文信息,如果要拿到数据就通过response.data去获取
+    //现在我们是在返回响应之前把响应直接改成了数据,以后拿数据就不需要.data了
+    return response.data;
+  },
+  (error) => {
+    //4 统一处理请求错误, 具体请求也可以选择处理或不处理
+    alert("发送请求失败:" + error.message || "未知错误");
+    //如果需要进一步处理这个错误,那么就返回一个失败的promise
+    //new Error("请求失败")就是自定义错误信息
+    // return Promise.reject(new Error("请求失败"));
+    //如果不需要再去处理这个错误,那么就返回一个pending状态的promise(目的在于终止promise链)
+    return new Promise(() => {});
+  }
+);
+export default instance; //暴露出去我们的axios工具  后面发请求使用
+统一处理请求错误, 具体请求也可以选择处理或不处理
+```
 
 
-​		统一处理请求错误, 具体请求也可以选择处理或不处理
+​		
 
-
-
-16、所有接口的请求函数模块，我们定义一个index.js去写
-	以后请求什么数据直接导入去调函数就可以
-	先写请求三级分类列表数据
-	测试ajax请求是否能够拿到数据
+## 16、所有接口的请求函数模块，我们定义一个index.js去写
+​	以后请求什么数据直接导入去调函数就可以
+​	先写请求三级分类列表数据
+​	测试ajax请求是否能够拿到数据
 
 ```js
+src/建api文件夹/建index.js
 //这个文件是所有的接口请求函数的文件
 //每个请求接口数据都定义成一个函数,以后哪里需要请求数据,就调用对应的这个接口请求函数就好了
 import Ajax from '@/ajax/Ajax.js'//刚才暴露出去的instance
@@ -814,10 +1076,11 @@ module.exports = {
 
 ```
 
+## 18、可以拿到数据，但是我们得去管理我们的数据，使用vuex
 
+src / 建store文件夹 / 建user.js , home.js , 使用vuex模块化管理数据
 
-18、可以拿到数据，但是我们得去管理我们的数据，使用vuex
-	每个vuex模块都能包含 state  mutations actions getters
+每个vuex模块都能包含 state  mutations actions getters
 	多模块化  画图分析
 	总的state结构是什么
 	mapState的写法分析  之前的state就是总的state  现在state里面包含了子模块对象
@@ -902,10 +1165,7 @@ Vue.use(Vuex);
 import user from "./user";
 import home from "./home";
 
-const state = {};
-const mutations = {};
-const actions = {};
-const getters = {};
+
 export default new Vuex.Store({
   state,
   mutations,
@@ -959,14 +1219,28 @@ const getters = {
 	三级分类列表宽度比较小，右边的缝隙比较大
 
 ```js
-TypeNav/index.vue
+TypeNav/index.vue 展示数据
 把class为item的都可以删掉了,在bo里面遍历categoryList里面的c1,写:key,
 (c1代表一个一个数据)
+<div class="item" v-for="c1 in categoryList" :key="c1.categoryId">
+  <h3>
+    <a href="">{{c1.categoryName}}</a>
+  </h3>
+</div>
+
 一级分类里面的a标签改成{{c1.categoryName}}
 class="fore"不正常,需要遍历,它就是二级分类,遍历c1.categoryChild里面的c2,写:key,
     dt里面的a标签插值c2.categoryName
 em代表的是三级分类,留一个,再遍历c2.categoryChild里面的c3,:key
 这时候左侧分类列表就能显示数据了
+<dl class="fore" v-for="c2 in c1.categoryChild" :key="c2.categoryId">
+  <dt>
+    <a href="">{{c2.categoryName}}</a>
+  </dt>
+</dl>
+<em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
+  <a href="">{{c3.categoryName}}</a>
+</em>
 ```
 
 
@@ -975,25 +1249,77 @@ em代表的是三级分类,留一个,再遍历c2.categoryChild里面的c3,:key
 
 
 
-20、事件控制二 三级的显示和隐藏
-	原来的是使用css去做的，咱们不用
-	添加移入和移出事件（关键是数据的设计）
-		移入哪一个把哪一个的index，传到回调函数，然后把currentIndex = index
-		上面使用类的对象写法：item_on : currentIndex == index
-		而移出事件我们需要移出全部分类的时候才会消失，因此移出事件我们需要添加在外部一个div上
+## 20、事件控制二 三级的显示和隐藏
+​	原来的是使用css去做的，咱们不用
+​	添加移入和移出事件（关键是数据的设计）
+​		移入哪一个把哪一个的index，传到回调函数，然后把currentIndex = index
+​		上面使用类的对象写法：item_on : currentIndex == index
+​		而移出事件我们需要移出全部分类的时候才会消失，因此移出事件我们需要添加在外部一个div上
+
+```js
+将 css 控制显示隐藏改为事件控制
+修改 css 类名
+&.item_on {
+  background-color: skyblue;
+  .item-list {
+    display: block;
+  }
+}
+```
+
+添加移入和移出事件,移出事件我们需要添加在外部一个 div 上
+
+```js
+TypeNav/index.vue
+<div @mouseleave="currentIndex=-1 ">
+  <h2 class="all">全部商品分类</h2>
+  <div class="sort">
+    <div class="all-sort-list2" @click="toSearch">
+      <div
+        class="item"
+        @mouseenter="moveIn(index)"
+        :class="{item_on:currentIndex === index}"
+      ></div>
+    </div>
+  </div>
+</div>
+```
+
+定义鼠标移入方法
+
+```js
+TypeNav/index.vue
+data() {
+    return {
+      currentIndex: -1, //当前移入项的下标  初始值 -1  移入某一项，就把这个值改为移入的这项的下标
+    };
+  },
+moveIn(index) {
+    //移入某一项 就把currentIndex的值改为移入这个项的下标
+    //而我们在项上添加的item_on这个类就会生效
+    this.currentIndex = index;
+     },
+```
+
+
 
 21、演示快速触发事件卡顿现象
 
-22、函数的防抖和节流讲解
-	100秒触发100次
-	正常：事件触发非常频繁，而且每一次的触发，回调函数都要去执行
-	节流：在规定的间隔时间范围内不会重复触发回调，只有大于这个时间间隔才会触发回调，把频繁触发变为少量触发
-	防抖：前面的所有的触发都被取消，最后一次执行在规定的时间之后才会，也就是说如果连续快速的触发  只会执行一次
 
-23、优化快速触发typeNav鼠标移入和移出事件，节流lodash的throttle节流操作
-	将移入事件的回调进行节流操作
 
-```html
+
+
+## 22、函数的防抖和节流讲解
+​	100秒触发100次
+​	正常：事件触发非常频繁，而且每一次的触发，回调函数都要去执行
+​	节流：在规定的间隔时间范围内不会重复触发回调，只有大于这个时间间隔才会触发回调，把频繁触发变为少量触发
+​	防抖：前面的所有的触发都被取消，最后一次执行在规定的时间之后才会，也就是说如果连续快速的触发  只会执行一次
+
+## 23、优化快速触发typeNav鼠标移入和移出事件，节流lodash的throttle节流操作
+​	将移入事件的回调进行节流操作
+
+```js
+TypeNav/index.vue
 //引入lodash里面的throttle方法
 //初始化当前索引	
  data() {
@@ -1035,11 +1361,13 @@ em代表的是三级分类,留一个,再遍历c2.categoryChild里面的c3,:key
 
 
 
-24、按需引入lodash减少打包体积
-	引入的时候不要去引入整个lodash
-	引入lodash/throttle ,创建throttle方法
+## 24、按需引入lodash减少打包体积
+​	引入的时候不要去引入整个lodash
+​	引入lodash/throttle ,创建throttle方法
 
-```vue
+```js
+TypeNav/index.vue
+import {throttle} from "lodash";
 moveIn: throttle(
       function (index) {
         console.log(index);
@@ -1052,25 +1380,55 @@ moveIn: throttle(
     ),
 ```
 
+## 25、解决使用 lodash 节流后，快速移出后，可能还会显示某个子项
+
+```js
+{
+  trailing: fasle;
+} //的作用    是否在结束延迟之后调用
+```
 
 
-26、点击某个类别（无论几级）跳转到搜索页面
-	先用声明式导航替换原来的a
-	需要把类别的id和类别的名字通过query参数传递
+
+## 26、点击某个类别（无论几级）跳转到搜索页面
+​	先用声明式导航替换原来的a
+​	需要把类别的id和类别的名字通过query参数传递
+
+此方法会造成卡顿
+
+```js
+TypeNav/index.vue
+<router-link
+  :to="{name:'search',query:{categoryName:c2.categoryName,category2Id:c2.categoryId}}"
+  >{{c2.categoryName}}</router-link
+>
+```
+
+
 
 ```javascript
- //解构data对象里面的categoryname,category1id,category2id,category3id
+TypeNav/index.vue
+//解构data对象里面的categoryname,category1id,category2id,category3id
       let { categoryname, category1id, category2id, category3id } = data;
 ```
 
 
 
-27、使用编程式路由导航优化声明式导航组件对象过多造成的卡顿
+## 27、使用编程式路由导航优化声明式导航组件对象过多造成的卡顿
 ​	声明式导航本质上是组件对象，组件对象过多，会造成效率很慢  所以会很卡
 ​
-28、利用事件委派提高处理事件的效率
+
+## 28、利用事件委派提高处理事件的效率
 ​	每个项都添加事件，事件的回调函数很多，效率也不好
 ​	在共同的父级元素添加事件监听
+
+```js
+TypeNav/index.vue
+<div class="container" @click="toSearch"></div>
+```
+
+
+
 ​		问题：怎么知道点击的是不是a标签
 
 ​		因为是自定义属性
@@ -1081,14 +1439,27 @@ moveIn: throttle(
 
 ​		问题：参数怎么携带，要携带携带哪些个的参数
 
-
+通过设置自定义属性
 
 ```js
- toSearch(event) {
+<a
+  href="javascript:;"
+  :data-categoryName="c1.categoryName"
+  :data-category1Id="c1.categoryId"
+  >{{c1.categoryName}}</a
+>
+```
+
+定义点击事件回调
+
+```js
+ //点击类别事件回调
+toSearch(event) {
       //真正触发事件的目标子元素
       let target = event.target;
-      //自定义属性组成的对象
+      //自定义属性组成的对象,拿到目标元素身上所有的自定义属性组成的对象
       let data = target.dataset;
+    // 什么时候点的就是a标签  data当中存在categoryname那么就是点击的a标签
       // console.dir(target);
       //解构data对象里面的categoryname,category1id,category2id,category3id
       let { categoryname, category1id, category2id, category3id } = data;
@@ -1112,7 +1483,7 @@ moveIn: throttle(
         }
         //到了这query参数就收集完了
         location.query = query;
-        //点击类别的时候带的是query参数,如果原来有params参数就带上
+        //点击类别的时候带的是query参数,我们得去看看原来有没有params参数，有的话也得带上
         if (this.$route.params) {
           location.params = this.$route.params;
         }
@@ -1129,7 +1500,8 @@ moveIn: throttle(
 ​	通过我们的标签对象.dataset跳转搜索页后
 
 ```js
- href="javascript:;"
+TypeNav/index.vue
+href="javascript:;"
   :data-categoryName="c1.categoryName"
   :data-category1Id="c1.categoryId"
 
@@ -1150,6 +1522,20 @@ href="javascript:;"
 ​	首先这个组件被多个页面公用
 ​	在mounted的时候可以判断路由是不是home如果不是把isShow改为false,  只是初始显示组件的时候隐藏一级分类
 
+```js
+<div class="sort" v-show="isShow"></div>
+```
+
+```js
+mounted() {
+    if(this.$route.path !== '/home'){
+      this.isShow = false
+    }
+  },
+```
+
+
+
 
 	移入的时候，一级分类要显示
 	再次考虑外部盒子移入和移出  首页的移入移出，不会隐藏，但是其余的会移出隐藏，因此移入和移出我们需要使用回调函数
@@ -1162,6 +1548,30 @@ href="javascript:;"
 ​	移入的时候是有过渡的
 ​	移出的时候立马隐藏的
 ​	注意：高度也是变化的
+
+<transition name="show"> 
+
+<div class="sort" v-show="isShow"></div>
+
+</transition>
+
+设置鼠标移入移出事件
+
+设置鼠标移入移出函数
+
+```js
+moveInDiv() {
+    this.isShow = true;
+  },
+  moveOutDiv() {
+    this.currentIndex = -1;
+    if (this.$route.path !== "/home") {
+      this.isShow = false;
+    }
+  },
+```
+
+
 
 ```js
 TypeNav/index.vue
@@ -1273,6 +1683,7 @@ TypeNav/index.vue
 
 ```js
 src/components/TypeNav/index.vue
+import { mapActions } from "vuex";
 //发送请求
   mounted() {
     this.getCategoryList();
@@ -1319,6 +1730,8 @@ const mutations = {
 ​	注意：我们点击搜索的时候关键字使用的是params参数
 ​	      点击类别选项的时候我们的参数使用的是query参数
 
+见28  29步
+
 ```js
 components/Header/index.vue
 methods
@@ -1345,7 +1758,24 @@ toSearch(e){
  
 ```
 
+```js
+Hearder/index.vue
+toSearch() {
+  let location = {
+    name: "search",
+    params: {
+      keyword: this.keyword || undefined,
+    },
+  };
+  if (this.$route.query) {
+    location.query = this.$route.query;
+  }
+  this.$router.push(location);
+},
+```
 
+注意：我们点击搜索的时候关键字使用的是 params 参数
+点击类别选项的时候我们的参数使用的是 query 参数
 
 
 到此为止我们的类别选项列表就完成了，后面开始做ListContainer和Floor
@@ -1361,12 +1791,14 @@ toSearch(e){
 ## 34、设计json数据的结构和值
 ​	banners.json
 ​	floors.json
-​	
-35、使用mockjs来模拟数据接口（其实和ajax差不多，mock其实就是给我们的json数据指定一个url路径去做请求）
+​	创建 mock 文件夹,模拟本地数据,创建 banner.json floor.json
+
+## 35、使用mockjs来模拟数据接口（其实和ajax差不多，mock其实就是给我们的json数据指定一个url路径去做请求）
 ​	准备json数据
 ​	使用mockjs来模拟提供接口地址
 
 - 在main中引入mockServer.js
+- 安装npm i mockjs -S
 
 mock会拦截我们的ajax请求，从本地拿数据返回 , 不会真正去发送请求。( 发送请求是往本地发的 , 没有往后端发的 , 请求的数据也是本地的) 请求回来的是Json数据格式
 
@@ -1529,6 +1961,23 @@ mock会拦截我们的ajax请求，从本地拿数据返回 , 不会真正去发
   在main.js里面引入@/mock/mockServer
   ```
 
+- 在 main.js 中引入 mock 服务
+
+- ```js
+  import "@/mock/mockServer";
+  ```
+
+- 封装 mockAjax
+  在 ajax 文件夹中创建 mockAjax.js 文件
+  只需要将 baseURL 改为/moke,其他配置一样
+
+- ```js
+  const instance = axios.create({
+    baseURL: "/mock", //配置请求基础路径
+    timeout: 20000, //配置请求超时时间
+  });
+  ```
+
 - 
 
 **ajax文件夹里面建mockAjax.js** , 复制ajax , 从本地拿数据的
@@ -1662,10 +2111,71 @@ center类名改src="floor.bigImg",当成js解析
 
 
 ## 36、mock数据的随机语法
-​	看文档
+看文档
+http://mockjs.com/examples.html
 
 ## 37、mock数据的vuex编码
 ​	和categoryList的获取几乎一致，把mock接口当真正接口对待就好了
+
+在 api 中添加 mock 接口的请求函数,请求模拟的 bannerList 和 floorList 数据
+
+```js
+api/index.js
+import mockAjax from "@/ajax/mockAjax";
+//请求banner和floor  mock的接口请求函数
+export const reqBannerList = () => {
+  return mockAjax({
+    url: "/banner",
+    method: "get",
+  });
+};
+export const reqFloorList = () => {
+  return mockAjax({
+    url: "/floor",
+    method: "get",
+  });
+};
+```
+
+在 store 中的 home.js 中创建 bannerList 和 floorList 数据以及发送请求的函数
+
+```js
+//引入请求moke接口的函数
+import { reqBannerList, reqFloorList } from "@/api";
+//初始化需要请求的数据
+const state = {
+  bannerList: [],
+  floorList: [],
+};
+//修改数据的方法
+const mutations = {
+  //直接修改数据  （不允许出现if  for  异步操作）
+  RECEIVEBANNERLIST(state, bannerList) {
+    state.bannerList = bannerList;
+  },
+  RECEIVEFLOORLIST(state, floorList) {
+    state.floorList = floorList;
+  },
+};
+//发送异步请求获取数据的方法
+const actions = {
+  //异步请求获取数据  允许if  for  异步操作
+  async getBannerList({ commit }) {
+    const result = await reqBannerList();
+    if (result.code === 200) {
+      commit("RECEIVEBANNERLIST", result.data);
+    }
+  },
+  async getFloorList({ commit }) {
+    const result = await reqFloorList();
+    if (result.code === 200) {
+      commit("RECEIVEFLOORLIST", result.data);
+    }
+  },
+};
+```
+
+
 
 **src/store/home.js**
 
@@ -4975,7 +5485,7 @@ pay(){
 //vue组件里面多了一个main
 //安装node-qrcode,GitHub搜索node-qrcode,
 async pay(){
-    //1.生成二维码图片
+    //第一步.生成二维码图片
     try{
         const imgUrl = await QRCode.toDataURL(this.payInfo.codeUrl)
         console.log(imgUrl)
@@ -4991,7 +5501,8 @@ async pay(){
 this.$alert(
 	
 )//函数的返回值也是promise
-//弹出消息同时循环的给后台发请求,获取该订单的支付状态数据,根据返回来的支付状态数据去决定要不要跳转到支付成功页面
+    
+//第三步.弹出消息同时循环的给后台发请求,获取该订单的支付状态数据,根据返回来的支付状态数据去决定要不要跳转到支付成功页面
 try{
     if(!this.timer){
         this.timer=setInterval(async () => {
@@ -5025,7 +5536,7 @@ export const reqOrderStatus = (orderId) => {
 Pay/index.vue
 try{
 async pay(){
-    //2.弹出一个消息框
+    //第二步.弹出一个消息框
      this.$alert(`<img src="${imgUrl}" />`, "请使用微信扫码支付",{
         dangerouslyUseHTMLString: true,
         showClose: false,
@@ -5041,36 +5552,44 @@ async pay(){
 Pay/index.vue
 try{
 this.$alert(
-    //4.点击按钮之后的处理及和第三步产生联系
-	beforeClose:(action,instance,done)=>{
-    //关闭之前的回调,如果不写这个回调,无论点击什么按钮,消息框都会强制关闭
-    //如果写了这个回调,那么消息框的关闭由我们自己控制
-    if(action === 'confirm'){
-        //真实的支付环境
-        //if(this.status !== 200){
-          //  this.$message.warning('小伙子没支付,支付后自动跳转')
-      //  }
-        
-        //测试环境
-        clearInterval(this.timer); //clearInterval清除定时器，停止给定编号的定时器，并没有清空存储编号的变量
-          this.timer = null;
-          done();
-          //跳转过去之后手动关闭我们的弹出消息框
-          this.$router.push("/paysuccess");
-    }else if(action === 'cancel'){
-         this.$message.warning('请联系尚硅谷前台小姐姐处理')
-        //停止定时器
-        clearInterval(this.timer)//停止给定编号的定时器,并没有清空存储编号的变量,相当于把那个标志清除
-            this.timer = null
-        done()//手动关闭消息框
-    }
-})
+    //第四步.点击按钮之后的处理及和第三步产生联系
+	beforeClose: (action, instance, done) => {
+            //关闭之前回调
+            //如果不写这个回调，那么无论点击什么按钮，消息盒子都会强制关闭
+            //如果写了这个回调，那么消息盒子的关闭由我们自己控制
+            if (action === "confirm") {
+              //真实的环境
+              // if(this.status !== 200){
+              //   this.$message.warning('小伙子没支付，支付后自动跳转')
+              // }
+
+              //测试环境
+              clearInterval(this.timer); //clearInterval清除定时器，停止给定编号的定时器，并没有清空存储编号的变量
+              this.timer = null;
+              done();
+              //跳转过去之后手动关闭我们的弹出消息框
+              this.$router.push("/paysuccess");
+            } else if (action === "cancel") {
+              this.$message.warning("请联系尚硅谷前台小姐姐处理");
+              clearInterval(this.timer); //clearInterval清除定时器，停止给定编号的定时器，并没有清空存储编号的变量
+              this.timer = null;
+              done(); //让我们手动关闭消息盒子
+            }
+          },
+    }).then(() => {}).catch(() => {}); //函数的返回值也是promise
 }
 //测试"我已成功支付"是否关闭消息框,点击支付遇到问题有bug
 //弹出一个消息框
 this.$alert().then(() => {}).catch(() => {})//函数的返回值也是promise
 
 router/routes.js
+//配PaySuccess的路由,并且引入
+import PaySuccess from '@/pages/PaySuccess'
+ {
+    path:'/paysuccess',
+    component:PaySuccess
+  },
+
 //配center的路由并且引入
  {
     path:'/center',

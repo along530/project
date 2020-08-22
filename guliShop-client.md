@@ -7,6 +7,7 @@ vue create '文件名'
 使用默认方式创建
 guliShop-client下面创建src文件夹assets , 里面用来放logo
 删除helloWord文件以及相关的标签
+ 安装npm install vue-router --save
 ```
 
 ##02、认识项目目录及各个目录的作用
@@ -41,7 +42,7 @@ new Vue({
 ## 04、eslint错误级别禁用   lintOnSave: false,
 
 ```js
-新建vue.config.js(package.json的同级文件)
+根目录新建vue.config.js(package.json的同级文件)
 module.exports = {
   		lintOnSave: false,
 	}
@@ -52,7 +53,7 @@ module.exports = {
 ## 05、jsconfig.json配置别名@提示
 
 ```js
-创建jsconfig.json(package.json的同级文件)
+根目录创建jsconfig.json(package.json的同级文件)
 
 {
   "compilerOptions": {
@@ -125,6 +126,7 @@ module.exports = {
 ## 09、把Header和Footer的模板进行替换显示
 
 ```js
+App.vue
 引入html到vue组件 template
 引入less到vue组件 style   解决loader   只需要安装less 和 less-loader就可以了
 引入图片	
@@ -161,7 +163,7 @@ index.html
 
 - **创建跟pages同级的router文件夹**
 
-  - **index.js , 引入基础组件 , 使用VueRouter插件**
+  - **router/index.js , 引入基础组件 , 使用VueRouter插件**
 
   - ```
     import Vue from "vue";
@@ -248,11 +250,11 @@ index.html
 
   - **src里面创建main.js**
 
-    - 需要引入vue  App.vue  router  
+    - 需要引入vue  App.vue  和 router  
 
       - 可以用@代表src
 
-    - new Vue , 注册注入给VUe添加路由功能并且能让每个组件内部都有两个对象可以拿到$router $route
+    - new Vue , 注册注入给Vue添加路由功能并且能让每个组件内部都有两个对象可以拿到$router $route
 
       - ```js
         new Vue({
@@ -285,18 +287,14 @@ index.html
   }
   </script>
   
-  <style>
-  
-  </style>
-  
   ```
-
+  
   - **Search/index.vue**
-
+  
   - ```vue
-    <template>
+  <template>
         <div>
-            Search<br>
+          Search<br>
             params参数:{{$route.params.keyword}}
             params参数简便获取:{{keyword}}
             query参数:{{$route.query.keyword}}
@@ -475,7 +473,7 @@ export default {
 在router 里面添加routes.js; 进行模块化
 
 在src目录下创建router文件夹, 并且创建index.js, routes.js
-index.js
+
 
 自定义模块的3步骤:
 
@@ -487,6 +485,8 @@ index.js
 2, 声明js模块, 不声明使用无效 Vue.use(VueRouter)
 
 3, 使用js模块
+
+router/index.js
 
 ```js
 import Vue from 'vue'
@@ -1097,7 +1097,7 @@ src / 建store文件夹 / 建user.js , home.js , 使用vuex模块化管理数据
 ```js
 store/home.js
 import {reqCategoryList} from '@/api'
-
+//初始化分类列表数据
 const state = {
   categoryList:[]
 }
@@ -1224,7 +1224,7 @@ TypeNav/index.vue 展示数据
 (c1代表一个一个数据)
 <div class="item" v-for="c1 in categoryList" :key="c1.categoryId">
   <h3>
-    <a href="">{{c1.categoryName}}</a>
+    <a href="javascript:;">{{c1.categoryName}}</a>
   </h3>
 </div>
 
@@ -1520,7 +1520,7 @@ href="javascript:;"
 
 ## 30、搜索页的typeNav一级列表隐藏
 ​	首先这个组件被多个页面公用
-​	在mounted的时候可以判断路由是不是home如果不是把isShow改为false,  只是初始显示组件的时候隐藏一级分类
+​	在mounted的时候可以判断路由是不是home, 如果不是把isShow改为false,  只是初始显示组件的时候隐藏一级分类
 
 ```js
 <div class="sort" v-show="isShow"></div>
@@ -1560,6 +1560,7 @@ mounted() {
 设置鼠标移入移出函数
 
 ```js
+TypeNav/index.vue
 moveInDiv() {
     this.isShow = true;
   },
@@ -1695,7 +1696,8 @@ import { mapActions } from "vuex";
     },
   },
  //触发home.js的actions里面的函数,请求数
-  
+ 
+store/home.js
   const state = {
   categoryList:[]
 }
@@ -1713,7 +1715,9 @@ const mutations = {
     // reqCategoryList().then(result => {
     //   commit('RECEIVECATEGORYLIST',result.data)
     // })
-
+      
+ //二次封装已经统一处理过错误了,所以就不用.catch
+	//这里肯定拿的是成功的结果
     const result = await reqCategoryList()
     if(result.code === 200){
       commit('RECEIVECATEGORYLIST',result.data)
@@ -1735,12 +1739,12 @@ const mutations = {
 ```js
 components/Header/index.vue
 methods
- toSearch(){}
-//新增代码
+ toSearch(){
+//点击搜索的时候应该去看看以前有没有query参数 （路由当中有没有）
     if(this.$route.query){
             location.query = this.$route.query
           }
-
+}
 ```
 
 ```js
@@ -1767,9 +1771,11 @@ toSearch() {
       keyword: this.keyword || undefined,
     },
   };
+    //点击搜索的时候应该去看看以前有没有query参数 （路由当中有没有）
   if (this.$route.query) {
     location.query = this.$route.query;
   }
+    //没有的话就放到路由对象上
   this.$router.push(location);
 },
 ```
@@ -1989,7 +1995,7 @@ mock会拦截我们的ajax请求，从本地拿数据返回 , 不会真正去发
 ```js
 引入mockAjax.js文件
 //请求banner和floor  mock的接口请求函数
-export const reqCategroyList = ()=>{
+export const reqCategoryList = ()=>{
     return mockAjax({
         url:'/banner',
         method:'get'
@@ -2047,7 +2053,7 @@ actions
 
 **listContainer/index.vue**
 
-```vue
+```js
 //引入vuex里面的mapState
 mounted(){
 //新增代码
@@ -2090,8 +2096,9 @@ computed:{
     this.$store.dispatch('getFloorList')
   },
 //看看vue调试Home里有没有数据
+  
 Floor标签遍历floorList里面的Floor, 加key ,属性传值:floor="floor"(props通信)
-
+<Floor v-for="(floor, index) in floorList" :key="floor.id" :floor="floor"></Floor>
 ```
 
 **Home/Floor/index.vue**
@@ -2099,12 +2106,46 @@ Floor标签遍历floorList里面的Floor, 加key ,属性传值:floor="floor"(pro
 ```js
 - 接收floor数据 , 声明接收属性
 - 家用电器改成{{floor.name}}
+ <h3 class="fl">{{floor.name}}</h3>
+
 - li , class="active" , 遍历floor.navList
+   <li class="active" v-for="(nav, index) in floor.navList" :key="nav.text">
+              <a href="#tab1" data-toggle="tab">{{nav.text}}</a>
+    </li>
+
 遍历节能补贴标签,floor.keywords里面的keyword属性,:key,内容{{keyword}},其他的li可以删掉了
+ <li v-for="(keyword, index) in floor.keywords" :key="index">{{keyword}}</li>
+
 img的src改成floor.imgUrl
-"swiper-slide"类名的标签 ,遍历floor.carouselList里面的属性carousel, 图片的src改成carousel.imgUrl,当成js解析
+<img :src="floor.imgUrl" />
+
+"swiper-slide"类名的标签 ,遍历floor.carouselList里面的属性
+<div
+    class="swiper-slide"
+    v-for="(carousel, index) in floor.carouselList":key="carousel.id">
+        
+carousel, 图片的src改成carousel.imgUrl,当成js解析
+<img :src="carousel.imgUrl" />
+    
 center类名改src="floor.bigImg",当成js解析
+<div class="split center">
+              <img :src="floor.bigImg" />
+</div>
+
 所有的floor-conver-pit改src ,floor.recommendList[0]、[1]、[2],[3]当成js解析
+<div class="floor-conver-pit">
+                <img :src="floor.recommendList[0]" />
+</div>
+<div class="floor-conver-pit">
+                <img :src="floor.recommendList[1]" />
+</div>
+<div class="floor-conver-pit">
+                <img :src="floor.recommendList[2]" />
+</div>
+<div class="floor-conver-pit">
+                <img :src="floor.recommendList[3]" />
+</div>
+
 图片放到public的图片里面 , Floor里面的images可以删了
 ```
 
@@ -2865,6 +2906,8 @@ mounted() {
 ```
 
 ## 49、搜索条件参数的理解和初始data收集参数准备
+gulishop-client2进度
+
 ​	传递参数对象，至少得传递一个没有属性的对象
 ​	搜索参数是怎么组成的，参考文档
 ​	在Search组件当中data设置初始参数的对象（因为不管怎么样搜索必须要一个初始的参数，没有就没办法）

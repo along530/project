@@ -269,7 +269,7 @@ export default {
       // this.$router.push({name:'search',params:this.$route.params})
       this.$router.replace({ name: "search", params: this.$route.params });
     },
-    //删除面包屑当中的关键字请求参数
+    //删除面包屑当中的关键字请求参数.
     removeKeyword() {
       this.searchParams.pageNo = 1;
 

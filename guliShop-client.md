@@ -10,7 +10,7 @@ guliShop-client下面创建src文件夹assets , 里面用来放logo
  安装npm install vue-router --save
 ```
 
-##02、认识项目目录及各个目录的作用
+## 02、认识项目目录及各个目录的作用
 
 ```vue
 async/await 是解决异步的最佳方案
@@ -292,6 +292,8 @@ index.html
   - **Search/index.vue**
   
   - ```vue
+    
+    ```
   <template>
         <div>
           Search<br>
@@ -301,7 +303,7 @@ index.html
             query参数简便获取:{{keyword2}}
         </div>
     </template>
-    
+  
     <script>
     export default {
         //组件名称
@@ -309,10 +311,13 @@ index.html
         props:['keyword','keyword2']
     }
     </script>
-    
+  
     <style lang="less" scoped>
-    
+  
     </style>
+  
+    ```
+  
     ```
 
 
@@ -2903,10 +2908,13 @@ mounted() {
     getGoodsListInfo() {
       this.$store.dispatch("getGoodsListInfo", this.searchParams);
     },
+        
+E:\前端学习资料\电商项目\Vue项目\代码\gshop-client_final\src\components,复制Pagination组件到components文件
+注册,引入,使用Pagination组件
 ```
 
 ## 49、搜索条件参数的理解和初始data收集参数准备
-gulishop-client2进度
+
 
 ​	传递参数对象，至少得传递一个没有属性的对象
 ​	搜索参数是怎么组成的，参考文档
@@ -2955,9 +2963,28 @@ computed:{
     //html部分
     干掉多余的li,只留一个 , 
      class='yui3-u-1-5'遍历,goodsList是个数据
-    img:src
+    <li
+                class="yui3-u-1-5"
+                v-for="(goods, index) in goodsList"
+                :key="goods.id"
+  >
+                    
+<img :src="goods.defaultImg" />
+    
     class='price'
+ <div class="price">
+                    <strong>
+                      <em>¥</em>
+                      <i>{{ goods.price }}</i>
+                    </strong>
+  </div>
+
     class='attr'
+<div class="attr">
+                    <router-link :to="`/detail/${goods.id}`">
+                      {{ goods.title }}
+                    </router-link>
+</div>
     //看页面显示的五个图片就是动态数据了
     //getters是为了防止a.b.c
 ```
@@ -2978,11 +3005,17 @@ export default {
 }
 //html部分
 class="logo-list" 留一个li,遍历
+<li v-for="(trademark, index) in trademarkList" :key="trademark.tmId" @click="searchForTrademark(trademark)">{{trademark.tmName}}</li>
+
 看search页面有没有品牌
 class='type-wrap',留一个div,,遍历
+ <div class="type-wrap" v-for="(attr, index) in attrsList" :key="attr.attrId">
+     
 //每一个Object是一个属性
 //这里一定是个双层for循环,属性和属性值都要遍历
 class="type-list",留一个li,遍历属性值
+<li v-for="(attrValue, index) in attr.attrValueList" :key="index">
+    
 刷新search页面,就有8个属性对应8个属性值,search数据就算展示完成
 
 ```
@@ -3066,7 +3099,7 @@ srcpages/Search/index.vue
 //beforMount一般用来同步处理数据(参数)
 beforeMount(){
    //重复代码,在Search/index.vue里面封装起来
-    
+    this.handlerSearchParams()
 }
 //现在看搜索页,属性就没了
     
@@ -3078,7 +3111,9 @@ beforeMount(){
 
 
 ## 52、动态显示和删除选中的搜索条件发送请求
-​	判断参数内部是否存在categoryName  存在就显示
+​	面包屑的显式和删除（路径没有变化的bug处理）
+
+判断参数内部是否存在categoryName  存在就显示
 ​	判断参数内部是否存在keyword 存在就显示
 ​	点击事件，如果删除就把参数对应的数据清除，顺便发送新的请求
 
@@ -3114,7 +3149,7 @@ methods:{
        不能直接dispatch,因为它改不了路由当中的路径 this.$route.push({name:'search',params:this.$route.params})
     },
         
-    //删除面包屑当中的关键字
+    //删除面包屑当中的关键字请求参数
     removeKeyword(){
         this.searchParams.keyword='';
   //解决删除选中的搜索条件后路径不变的bug
@@ -3122,8 +3157,11 @@ methods:{
 	//我们需要手动去push跳转到去除对应参数的新路由      
   this.$router.replace({name:'search',query:this.$route.query})
     }
-    //现在测试删除面包屑,路径是否变化
+   
 }
+
+
+//现在测试删除面包屑,路径是否变化
 ```
 
 
@@ -3201,7 +3239,7 @@ methods:{
 **Search/indx.vue**
 
 ```js
-
+//使用子组件
 <SearchSelector @searchForTradmark='searchForTradmark' />
     //删除面包屑当中的品牌参数
  removeTrademark(){
@@ -3214,12 +3252,23 @@ searchForTrademark(tradmark){
     //发请求
     this.getGoodsListInfo()
 }
+
+动态显示和删除选中的品牌搜索条件
+在 Search 组件中判断参数内部是否存在 trademark 存在就显示
+<li class="with-x" v-show="searchParams.trademark">
+              {{
+                (searchParams.trademark ? searchParams.trademark : "").split(
+                  ":"
+                )[1]
+              }}
+              <!-- {{searchParams.trademark.split(':')[1]}}  -->
+              <i @click="removeTrademark">×</i>
+</li>
 ```
 
 **SearchSelector.vue**
 
 ```js
-
 
 //v-if用这种写法
 //{{searchParams.trademark.split()}}//假报错
@@ -3277,7 +3326,14 @@ methods:{
 html部分
 class"with-x"
 - {{prop.split(':')[1]}}
-class"with-x"/<i></i>
+<li
+              class="with-x"
+              v-for="(prop, index) in searchParams.props"
+              :key="index"
+            >
+              {{ prop.split(":")[1] }}
+              <i @click="removeProp(index)">×</i>
+</li>
 
 ```
 
@@ -3286,9 +3342,13 @@ class"with-x"/<i></i>
 # day06 删除面包屑清空关键字 排序的图标 点击切换排序 自定义分页组件 详情页
 
 ## 57、解决在搜索页多次跳转后不能直接返回home的问题
+gulishop-client2 进度1
+
 ​	查看之前书写的所有跳转路由
 ​	如果是搜索页往搜索页去跳转使用replace
 ​	如果是home页往搜索页去跳转使用push
+
+
 
 **Header/index.vue**
 
@@ -3406,25 +3466,52 @@ const getters = {
 ```js
 search/index.vue
 哪个排序项选中并且有背景色（根据数据中的orderFlag决定active的类名）
+综合
 <ul class="sui-nav">
-  <li :class="{ active: searchParams.order.split(':')[0] === '1' }">
-    <a href="#">综合</a>
+  <li :class="{active:orderFlag === '1'}" }">
+    <a href="javascript:;" @click="changeOrder('1')">综合
+		<i
+                      class="iconfont"
+                      :class="{
+                        icondown: orderType === 'desc',
+                        iconup: orderType === 'asc',
+                      }"
+                      v-if="orderFlag === '1'"
+                    >
+      	</i>
+    </a>
   </li>
-  <li :class="{ active: searchParams.order.split(':')[0] === '2' }">
-    <a href="#">价格⬆</a>
+
+价格
+  <li :class="{active:orderFlag === '2'}"}">
+    <a href="javascript:;" @click="changeOrder('2')">价格
+		<i
+                      class="iconfont"
+                      :class="{
+                        icondown: orderType === 'desc',
+                        iconup: orderType === 'asc',
+                      }"
+                      v-if="orderFlag === '2'"
+                    >
+      </i>
+	</a>
   </li>
 </ul>
+
+
 ```
 
 
-	iconfont的使用
+```html
+iconfont的使用
+//引入字体图标在线地址
+public/index.html
+ <link rel="stylesheet" href="https://at.alicdn.com/t/font_2012379_mubm7liirxp.css">
+```
 
 
 	图标显示在哪项什么时候显示（根据数据中的orderFlag决定）
-
-
 	图标是向上还是向下（根据数据中的orderType决定）
-
 
 ​	点击切换排序包含排序项和排序方式
 ​		点击当前排序项         切换排序方式
@@ -3457,28 +3544,11 @@ class=sui-nav/li,:class="{active:searchParams.order.split(':')[0] === '1'}"
     2.图标在哪里显示
     	和上面背景色一样的,谁有背景色才有图标
 		综合标签,
-   <li :class="{active:orderFlag === '1'}">
-          <a href="javascript:;">
-            综合
-            <i
-              class="iconfont"
-              :class="{icondown:orderType === 'desc',iconup:orderType === 'asc'}"
-              v-if="orderFlag === '1'"
-            ></i>
-          </a>
-    </li>
+ 
 
 		价格标签也设置
-    <li :class="{active:orderFlag === '2'}">
-              <a href="javascript:;">
-                价格
-                <i
-                  class="iconfont"
-                  :class="{icondown:orderType === 'desc',iconup:orderType=== 'asc'}"
-                  v-if="orderFlag === '2'"
-                ></i>
-              </a>
-    </li>
+ 
+
     3.图标是向上还是向下
 //3.点击切换排序规则
   综合标签,
@@ -3517,12 +3587,12 @@ computed:{
         orderFlag() {
       return this.searchParams.order.split(":")[0];
     },
-    orderType() {
+    	orderType() {
       return this.searchParams.order.split(":")[1];
     },
 }
 //设置综合标签,价格标签,优化
-
+//综合和价格排序切换规则
 changeOrder(){
     //优化
     let originOrderFlag = this.orderFlag;
@@ -3578,7 +3648,7 @@ pages/Search/index.vue
 
 
 
-
+client2进度2
 
 
 ```vue

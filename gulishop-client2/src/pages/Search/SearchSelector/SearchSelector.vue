@@ -38,7 +38,7 @@ import { mapGetters } from 'vuex'
       searchForTrademark(trademark){
         //需要给父亲传递trademark数据，让父亲去发请求
         //哪里在触发事件（$emit）哪里就是发送数据的
-        this.$emit('searchForTrademark',trademark)
+        this.$emit('searchForTrademark',trademark)//发送给searchForTradmark(tradmark)这个回调
       },
       searchForAttrValue(attr,attrValue){
         this.$emit('searchForAttrValue',attr,attrValue)

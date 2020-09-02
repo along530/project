@@ -160,6 +160,7 @@
 
 <script>
 import SearchSelector from "./SearchSelector/SearchSelector";
+import Pagination from "@/components/Pagination";
 import { mapGetters, mapState } from "vuex";
 export default {
   name: "Search",
@@ -357,6 +358,7 @@ export default {
     },
   },
   components: {
+    Pagination,
     SearchSelector,
   },
 

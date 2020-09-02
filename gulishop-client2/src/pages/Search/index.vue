@@ -61,7 +61,7 @@
 
                 //3、点击切换排序规则
                 -->
-                <li :class="{ active: orderFlag === '1' }">
+                <li :class="{ active: searchParams.order.split(':')[0] === '1' }">
                   <a href="javascript:;" @click="changeOrder('1')">
                     综合
                     <i
@@ -159,6 +159,7 @@
 </template>
 
 <script>
+import Pagination from '@/components/Pagination'
 import SearchSelector from "./SearchSelector/SearchSelector";
 import { mapGetters, mapState } from "vuex";
 export default {
@@ -219,7 +220,11 @@ export default {
   },
 
   mounted() {
+     //在mounted内部可以发送请求·
     this.getGoodsListInfo();
+  },
+   beforeMouted(){
+      this.handlerSearchParams()
   },
   methods: {
     getGoodsListInfo() {
@@ -255,7 +260,7 @@ export default {
       //把我们搜索的参数数据变为当前的这个处理后的对象
       this.searchParams = searchParams;
     },
-    //删除面包屑当中的类名请求参数
+   //移除面包屑中的类名请求参数,相当于删除query
     removeCategoryName() {
       this.searchParams.pageNo = 1;
       this.searchParams.categoryName = "";
@@ -348,6 +353,7 @@ export default {
     ...mapState({
       goodsListInfo: (state) => state.search.goodsListInfo,
     }),
+    //在computed内部获取我们的数据
     ...mapGetters(["goodsList"]),
     orderFlag() {
       return this.searchParams.order.split(":")[0];
@@ -358,6 +364,7 @@ export default {
   },
   components: {
     SearchSelector,
+    Pagination
   },
 
   //解决search页输入搜索参数或者点击类别不会发请求的bug

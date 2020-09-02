@@ -38,8 +38,19 @@
       </h1>
       <div class="searchArea">
         <form action="###" class="searchForm">
-          <input type="text" id="autocomplete" class="input-error input-xxlarge" v-model="keyword"/>
-          <button class="sui-btn btn-xlarge btn-danger" type="button" @click="toSearch">搜索</button>
+          <input
+            type="text"
+            id="autocomplete"
+            class="input-error input-xxlarge"
+            v-model="keyword"
+          />
+          <button
+            class="sui-btn btn-xlarge btn-danger"
+            type="button"
+            @click="toSearch"
+          >
+            搜索
+          </button>
         </form>
       </div>
     </div>
@@ -49,13 +60,13 @@
 <script>
 export default {
   name: "Header",
-  data(){
+  data() {
     return {
-      keyword:''
-    }
+      keyword: "",
+    };
   },
-  methods:{
-    toSearch(){
+  methods: {
+    toSearch() {
       let location = {
         //1、对象写法
         //当传递参数传递有params参数的时候，对象写法必须是name和params去组合
@@ -68,28 +79,46 @@ export default {
         // 要么不指定params参数   要么传递过去一个undefined 代表什么都没传，不能直接传空串
         // 前提得  params参数可传可不传
 
-        // path:'/search',
-        name:'search',
-        params:{
-          keyword:this.keyword || undefined
+        // path:"/search",
+        name: "search",
+        params: {
+          keyword: this.keyword || undefined,
         },
         // query:{
         //   keyword:this.keyword.toUpperCase()
         // }
-      }
-
+      };
 
       //点击搜索的时候应该去看看以前有没有query参数 （路由当中有没有）
-      if(this.$route.query){
-        location.query = this.$route.query
+      if (this.$route.query) {
+        location.query = this.$route.query;
+      } else {
+        // this.$router.push("/search") //字符串
+        this.$router.push(location); //对象
       }
 
-
-      // this.$router.push('/search') //字符串 
-      this.$router.push(location) //对象
       //路由传递参数
-    }
-  }
+
+      // 如果是搜索页往搜索页去跳转使用replace
+      // 如果是home页往搜索页去跳转使用push
+
+      if (this.$route.path !== "/home") {
+        this.$router.replace(location);
+      } else {
+        this.$router.push(location);
+      }
+    },
+    clearKeyword() {
+      this.keyword = "";
+    },
+  },
+  mounted() {
+    // 通过全局总线绑定removeKeyword事件监听
+    this.$bus.$on("removeKeyword", () => {
+      this.keyword = ""; // 置空我们的搜索关键字
+    });
+    this.$bus.$on("clearKeyword", this.clearKeyword);
+  },
 };
 </script>
 

@@ -10,7 +10,7 @@
               <div
                 class="item"
                 @mouseenter="moveIn(index)"
-                :class="{item_on:currentIndex === index}"
+                :class="{ item_on: currentIndex === index }"
                 v-for="(c1, index) in categoryList"
                 :key="c1.categoryId"
               >
@@ -39,11 +39,16 @@
                     href="javascript:;"
                     :data-categoryName="c1.categoryName"
                     :data-category1Id="c1.categoryId"
-                  >{{c1.categoryName}}</a>
+                    >{{ c1.categoryName }}</a
+                  >
                 </h3>
                 <div class="item-list clearfix">
                   <div class="subitem">
-                    <dl class="fore" v-for="(c2, index) in c1.categoryChild" :key="c2.categoryId">
+                    <dl
+                      class="fore"
+                      v-for="c2 in c1.categoryChild"
+                      :key="c2.categoryId"
+                    >
                       <dt>
                         <!-- <a href>{{c2.categoryName}}</a> -->
                         <!-- <router-link
@@ -58,10 +63,11 @@
                           href="javascript:;"
                           :data-categoryName="c2.categoryName"
                           :data-category2Id="c2.categoryId"
-                        >{{c2.categoryName}}</a>
+                          >{{ c2.categoryName }}</a
+                        >
                       </dt>
                       <dd>
-                        <em v-for="(c3, index) in c2.categoryChild" :key="c3.categoryId">
+                        <em v-for="c3 in c2.categoryChild" :key="c3.categoryId">
                           <!-- <a href>{{c3.categoryName}}</a> -->
                           <!-- <router-link
                             :to="{name:'search',query:{categoryName:c3.categoryName,category3Id:c3.categoryId}}"
@@ -76,7 +82,8 @@
                             href="javascript:;"
                             :data-categoryName="c3.categoryName"
                             :data-category3Id="c3.categoryId"
-                          >{{c3.categoryName}}</a>
+                            >{{ c3.categoryName }}</a
+                          >
                         </em>
                       </dd>
                     </dl>
@@ -114,7 +121,6 @@ export default {
       currentIndex: -1, //当前移入项的下标  初始值 -1  移入某一项，就把这个值改为移入的这项的下标
       isShow: true,
     };
-   
   },
   mounted() {
     //需要发请求就调函数
@@ -149,7 +155,7 @@ export default {
     // },
 
     moveIn: throttle(
-      function (index) {
+      function(index) {
         //throttle是一个函数，内部需要传递一个回调函数，最后会返回一个新的函数
         console.log(index);
         this.currentIndex = index;
@@ -194,6 +200,13 @@ export default {
       } //else{
       //   //点击不是a标签，不关心
       // }
+      // 如果是搜索页往搜索页去跳转使用replace
+      //如果是home页往搜索页去跳转使用push
+      if (this.$route.path !== "/home") {
+        this.$router.replace(location);
+      } else {
+        this.$router.push(location);
+      }
     },
 
     //移入外部的div显示三级分类列表
@@ -207,6 +220,9 @@ export default {
         this.isShow = false;
       }
     },
+    removeCategoryName(){
+    this.$router.replace({name:'search',params:this.$route.params})
+}
   },
 
   computed: {
